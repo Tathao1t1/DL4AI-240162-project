@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Large model files — track metadata/predictions but not weights
+models/**/*.keras
+models/**/*.joblib
+models/**/*.pkl
+models/**/*.h5
