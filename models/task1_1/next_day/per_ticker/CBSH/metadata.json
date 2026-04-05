@@ -1,0 +1,33 @@
+{
+  "ticker": "CBSH",
+  "task": "task1_1",
+  "lookback": 60,
+  "features": [
+    "Return_1d",
+    "Return_5d",
+    "Return_10d",
+    "Return_20d",
+    "SMA10_vs_SMA20",
+    "SMA20_vs_SMA50",
+    "EMA10_vs_EMA20",
+    "Close_vs_SMA20",
+    "Close_vs_SMA50",
+    "RSI_14",
+    "MACD_pct",
+    "MACD_sig_pct",
+    "MACD_hist_pct",
+    "BB_width",
+    "BB_pct",
+    "ATR_pct",
+    "Volatility_10",
+    "Volatility_20",
+    "Volume_ratio",
+    "High_Low_pct"
+  ],
+  "train_end": "2019-12-26",
+  "val_end": "2023-02-07",
+  "test_end": "2026-03-27",
+  "test_mae": 0.592,
+  "test_rmse": 0.8231,
+  "test_mape": 1.1512
+}
