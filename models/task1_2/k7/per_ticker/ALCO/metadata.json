@@ -1,0 +1,8 @@
+{
+  "ticker": "ALCO",
+  "task": "task1_2_k7",
+  "k": 7,
+  "lookback": 60,
+  "test_mae": 0.9848,
+  "test_mape": 3.3704
+}

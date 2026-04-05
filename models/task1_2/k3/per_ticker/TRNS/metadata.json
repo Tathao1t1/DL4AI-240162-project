@@ -1,0 +1,8 @@
+{
+  "ticker": "TRNS",
+  "task": "task1_2_k3",
+  "k": 3,
+  "lookback": 60,
+  "test_mae": 3.2979,
+  "test_mape": 3.5854
+}

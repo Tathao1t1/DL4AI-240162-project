@@ -1,0 +1,8 @@
+{
+  "ticker": "HELE",
+  "task": "task1_2_k7",
+  "k": 7,
+  "lookback": 60,
+  "test_mae": 4.3566,
+  "test_mape": 7.2243
+}

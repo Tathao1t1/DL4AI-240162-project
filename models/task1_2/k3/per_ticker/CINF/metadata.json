@@ -1,0 +1,8 @@
+{
+  "ticker": "CINF",
+  "task": "task1_2_k3",
+  "k": 3,
+  "lookback": 60,
+  "test_mae": 2.432,
+  "test_mape": 1.8631
+}

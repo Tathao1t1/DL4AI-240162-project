@@ -1,0 +1,8 @@
+{
+  "ticker": "ROST",
+  "task": "task1_2_k7",
+  "k": 7,
+  "lookback": 60,
+  "test_mae": 4.0062,
+  "test_mape": 2.8476
+}

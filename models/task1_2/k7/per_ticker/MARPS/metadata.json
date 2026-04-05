@@ -1,0 +1,8 @@
+{
+  "ticker": "MARPS",
+  "task": "task1_2_k7",
+  "k": 7,
+  "lookback": 60,
+  "test_mae": 0.253,
+  "test_mape": 5.1634
+}

@@ -1,0 +1,8 @@
+{
+  "ticker": "KLIC",
+  "task": "task1_2_k3",
+  "k": 3,
+  "lookback": 60,
+  "test_mae": 1.4621,
+  "test_mape": 3.1409
+}
