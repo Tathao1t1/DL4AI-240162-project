@@ -1,0 +1,8 @@
+{
+  "ticker": "OTTR",
+  "task": "task1_2_k7",
+  "k": 7,
+  "lookback": 60,
+  "test_mae": 2.7106,
+  "test_mape": 3.3323
+}

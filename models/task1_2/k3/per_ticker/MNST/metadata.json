@@ -1,0 +1,8 @@
+{
+  "ticker": "MNST",
+  "task": "task1_2_k3",
+  "k": 3,
+  "lookback": 60,
+  "test_mae": 1.024,
+  "test_mape": 1.7595
+}

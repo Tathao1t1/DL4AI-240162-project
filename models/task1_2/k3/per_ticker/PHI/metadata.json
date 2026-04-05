@@ -1,0 +1,8 @@
+{
+  "ticker": "PHI",
+  "task": "task1_2_k3",
+  "k": 3,
+  "lookback": 60,
+  "test_mae": 0.4631,
+  "test_mape": 2.0067
+}

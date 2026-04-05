@@ -1,0 +1,8 @@
+{
+  "ticker": "DIOD",
+  "task": "task1_2_k7",
+  "k": 7,
+  "lookback": 60,
+  "test_mae": 3.416,
+  "test_mape": 5.4276
+}

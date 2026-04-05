@@ -1,0 +1,8 @@
+{
+  "ticker": "INTC",
+  "task": "task1_2_k3",
+  "k": 3,
+  "lookback": 60,
+  "test_mae": 1.2893,
+  "test_mape": 4.1794
+}

@@ -1,0 +1,8 @@
+{
+  "ticker": "CLNE",
+  "task": "task1_2_k3",
+  "k": 3,
+  "lookback": 60,
+  "test_mae": 0.1347,
+  "test_mape": 4.8561
+}

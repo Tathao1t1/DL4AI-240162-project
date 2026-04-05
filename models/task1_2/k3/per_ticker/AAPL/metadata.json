@@ -1,0 +1,8 @@
+{
+  "ticker": "AAPL",
+  "task": "task1_2_k3",
+  "k": 3,
+  "lookback": 60,
+  "test_mae": 4.3795,
+  "test_mape": 2.0917
+}
