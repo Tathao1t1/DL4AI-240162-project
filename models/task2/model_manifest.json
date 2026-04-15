@@ -1,0 +1,1439 @@
+{
+  "tickers": [
+    "ACB",
+    "BMC",
+    "BMP",
+    "DHA",
+    "DHG",
+    "DMC",
+    "FMC",
+    "FPT",
+    "GMD",
+    "HAX",
+    "KDC",
+    "MHC",
+    "PAC",
+    "PET",
+    "PGC",
+    "PPC",
+    "PVD",
+    "RAL",
+    "SAM",
+    "SFI",
+    "SJS",
+    "SSI",
+    "STB",
+    "TDH",
+    "VIP",
+    "VNE",
+    "VNM"
+  ],
+  "n_features": 24,
+  "feature_cols": [
+    "Return_1d",
+    "Return_5d",
+    "Return_10d",
+    "Return_20d",
+    "SMA10_vs_SMA20",
+    "SMA20_vs_SMA50",
+    "EMA10_vs_EMA20",
+    "Close_vs_SMA20",
+    "Close_vs_SMA50",
+    "RSI_14",
+    "MACD_pct",
+    "MACD_sig_pct",
+    "MACD_hist_pct",
+    "BB_width",
+    "BB_pct",
+    "ATR_pct",
+    "Volatility_10",
+    "Volatility_20",
+    "Volume_ratio",
+    "High_Low_pct",
+    "VN_limit_prox",
+    "OC_pct",
+    "Upper_shadow",
+    "Lower_shadow"
+  ],
+  "lookback": 30,
+  "artifact_dir": "/Users/ttt/Downloads/DL4AI-240162-project/models/task2",
+  "models": {
+    "ACB": {
+      "task2_1": {
+        "model": "task2_1_ACB.keras",
+        "scaler_X": "scaler_X_ACB.pkl",
+        "scaler_y": "scaler_y_t21_ACB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_ACB.keras",
+        "scaler_X": "scaler_X_ACB.pkl",
+        "scaler_y": "scaler_y_t22_k3_ACB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_ACB.keras",
+        "scaler_X": "scaler_X_ACB.pkl",
+        "scaler_y": "scaler_y_t22_k7_ACB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_ACB.keras",
+        "scaler_X": "scaler_X_ACB.pkl",
+        "scaler_y": "scaler_y_t23_k3_ACB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_ACB.keras",
+        "scaler_X": "scaler_X_ACB.pkl",
+        "scaler_y": "scaler_y_t23_k7_ACB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "BMC": {
+      "task2_1": {
+        "model": "task2_1_BMC.keras",
+        "scaler_X": "scaler_X_BMC.pkl",
+        "scaler_y": "scaler_y_t21_BMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_BMC.keras",
+        "scaler_X": "scaler_X_BMC.pkl",
+        "scaler_y": "scaler_y_t22_k3_BMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_BMC.keras",
+        "scaler_X": "scaler_X_BMC.pkl",
+        "scaler_y": "scaler_y_t22_k7_BMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_BMC.keras",
+        "scaler_X": "scaler_X_BMC.pkl",
+        "scaler_y": "scaler_y_t23_k3_BMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_BMC.keras",
+        "scaler_X": "scaler_X_BMC.pkl",
+        "scaler_y": "scaler_y_t23_k7_BMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "BMP": {
+      "task2_1": {
+        "model": "task2_1_BMP.keras",
+        "scaler_X": "scaler_X_BMP.pkl",
+        "scaler_y": "scaler_y_t21_BMP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_BMP.keras",
+        "scaler_X": "scaler_X_BMP.pkl",
+        "scaler_y": "scaler_y_t22_k3_BMP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_BMP.keras",
+        "scaler_X": "scaler_X_BMP.pkl",
+        "scaler_y": "scaler_y_t22_k7_BMP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_BMP.keras",
+        "scaler_X": "scaler_X_BMP.pkl",
+        "scaler_y": "scaler_y_t23_k3_BMP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_BMP.keras",
+        "scaler_X": "scaler_X_BMP.pkl",
+        "scaler_y": "scaler_y_t23_k7_BMP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "DHA": {
+      "task2_1": {
+        "model": "task2_1_DHA.keras",
+        "scaler_X": "scaler_X_DHA.pkl",
+        "scaler_y": "scaler_y_t21_DHA.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_DHA.keras",
+        "scaler_X": "scaler_X_DHA.pkl",
+        "scaler_y": "scaler_y_t22_k3_DHA.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_DHA.keras",
+        "scaler_X": "scaler_X_DHA.pkl",
+        "scaler_y": "scaler_y_t22_k7_DHA.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_DHA.keras",
+        "scaler_X": "scaler_X_DHA.pkl",
+        "scaler_y": "scaler_y_t23_k3_DHA.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_DHA.keras",
+        "scaler_X": "scaler_X_DHA.pkl",
+        "scaler_y": "scaler_y_t23_k7_DHA.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "DHG": {
+      "task2_1": {
+        "model": "task2_1_DHG.keras",
+        "scaler_X": "scaler_X_DHG.pkl",
+        "scaler_y": "scaler_y_t21_DHG.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_DHG.keras",
+        "scaler_X": "scaler_X_DHG.pkl",
+        "scaler_y": "scaler_y_t22_k3_DHG.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_DHG.keras",
+        "scaler_X": "scaler_X_DHG.pkl",
+        "scaler_y": "scaler_y_t22_k7_DHG.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_DHG.keras",
+        "scaler_X": "scaler_X_DHG.pkl",
+        "scaler_y": "scaler_y_t23_k3_DHG.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_DHG.keras",
+        "scaler_X": "scaler_X_DHG.pkl",
+        "scaler_y": "scaler_y_t23_k7_DHG.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "DMC": {
+      "task2_1": {
+        "model": "task2_1_DMC.keras",
+        "scaler_X": "scaler_X_DMC.pkl",
+        "scaler_y": "scaler_y_t21_DMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_DMC.keras",
+        "scaler_X": "scaler_X_DMC.pkl",
+        "scaler_y": "scaler_y_t22_k3_DMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_DMC.keras",
+        "scaler_X": "scaler_X_DMC.pkl",
+        "scaler_y": "scaler_y_t22_k7_DMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_DMC.keras",
+        "scaler_X": "scaler_X_DMC.pkl",
+        "scaler_y": "scaler_y_t23_k3_DMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_DMC.keras",
+        "scaler_X": "scaler_X_DMC.pkl",
+        "scaler_y": "scaler_y_t23_k7_DMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "FMC": {
+      "task2_1": {
+        "model": "task2_1_FMC.keras",
+        "scaler_X": "scaler_X_FMC.pkl",
+        "scaler_y": "scaler_y_t21_FMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_FMC.keras",
+        "scaler_X": "scaler_X_FMC.pkl",
+        "scaler_y": "scaler_y_t22_k3_FMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_FMC.keras",
+        "scaler_X": "scaler_X_FMC.pkl",
+        "scaler_y": "scaler_y_t22_k7_FMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_FMC.keras",
+        "scaler_X": "scaler_X_FMC.pkl",
+        "scaler_y": "scaler_y_t23_k3_FMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_FMC.keras",
+        "scaler_X": "scaler_X_FMC.pkl",
+        "scaler_y": "scaler_y_t23_k7_FMC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "FPT": {
+      "task2_1": {
+        "model": "task2_1_FPT.keras",
+        "scaler_X": "scaler_X_FPT.pkl",
+        "scaler_y": "scaler_y_t21_FPT.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_FPT.keras",
+        "scaler_X": "scaler_X_FPT.pkl",
+        "scaler_y": "scaler_y_t22_k3_FPT.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_FPT.keras",
+        "scaler_X": "scaler_X_FPT.pkl",
+        "scaler_y": "scaler_y_t22_k7_FPT.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_FPT.keras",
+        "scaler_X": "scaler_X_FPT.pkl",
+        "scaler_y": "scaler_y_t23_k3_FPT.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_FPT.keras",
+        "scaler_X": "scaler_X_FPT.pkl",
+        "scaler_y": "scaler_y_t23_k7_FPT.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "GMD": {
+      "task2_1": {
+        "model": "task2_1_GMD.keras",
+        "scaler_X": "scaler_X_GMD.pkl",
+        "scaler_y": "scaler_y_t21_GMD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_GMD.keras",
+        "scaler_X": "scaler_X_GMD.pkl",
+        "scaler_y": "scaler_y_t22_k3_GMD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_GMD.keras",
+        "scaler_X": "scaler_X_GMD.pkl",
+        "scaler_y": "scaler_y_t22_k7_GMD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_GMD.keras",
+        "scaler_X": "scaler_X_GMD.pkl",
+        "scaler_y": "scaler_y_t23_k3_GMD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_GMD.keras",
+        "scaler_X": "scaler_X_GMD.pkl",
+        "scaler_y": "scaler_y_t23_k7_GMD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "HAX": {
+      "task2_1": {
+        "model": "task2_1_HAX.keras",
+        "scaler_X": "scaler_X_HAX.pkl",
+        "scaler_y": "scaler_y_t21_HAX.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_HAX.keras",
+        "scaler_X": "scaler_X_HAX.pkl",
+        "scaler_y": "scaler_y_t22_k3_HAX.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_HAX.keras",
+        "scaler_X": "scaler_X_HAX.pkl",
+        "scaler_y": "scaler_y_t22_k7_HAX.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_HAX.keras",
+        "scaler_X": "scaler_X_HAX.pkl",
+        "scaler_y": "scaler_y_t23_k3_HAX.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_HAX.keras",
+        "scaler_X": "scaler_X_HAX.pkl",
+        "scaler_y": "scaler_y_t23_k7_HAX.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "KDC": {
+      "task2_1": {
+        "model": "task2_1_KDC.keras",
+        "scaler_X": "scaler_X_KDC.pkl",
+        "scaler_y": "scaler_y_t21_KDC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_KDC.keras",
+        "scaler_X": "scaler_X_KDC.pkl",
+        "scaler_y": "scaler_y_t22_k3_KDC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_KDC.keras",
+        "scaler_X": "scaler_X_KDC.pkl",
+        "scaler_y": "scaler_y_t22_k7_KDC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_KDC.keras",
+        "scaler_X": "scaler_X_KDC.pkl",
+        "scaler_y": "scaler_y_t23_k3_KDC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_KDC.keras",
+        "scaler_X": "scaler_X_KDC.pkl",
+        "scaler_y": "scaler_y_t23_k7_KDC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "MHC": {
+      "task2_1": {
+        "model": "task2_1_MHC.keras",
+        "scaler_X": "scaler_X_MHC.pkl",
+        "scaler_y": "scaler_y_t21_MHC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_MHC.keras",
+        "scaler_X": "scaler_X_MHC.pkl",
+        "scaler_y": "scaler_y_t22_k3_MHC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_MHC.keras",
+        "scaler_X": "scaler_X_MHC.pkl",
+        "scaler_y": "scaler_y_t22_k7_MHC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_MHC.keras",
+        "scaler_X": "scaler_X_MHC.pkl",
+        "scaler_y": "scaler_y_t23_k3_MHC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_MHC.keras",
+        "scaler_X": "scaler_X_MHC.pkl",
+        "scaler_y": "scaler_y_t23_k7_MHC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "PAC": {
+      "task2_1": {
+        "model": "task2_1_PAC.keras",
+        "scaler_X": "scaler_X_PAC.pkl",
+        "scaler_y": "scaler_y_t21_PAC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_PAC.keras",
+        "scaler_X": "scaler_X_PAC.pkl",
+        "scaler_y": "scaler_y_t22_k3_PAC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_PAC.keras",
+        "scaler_X": "scaler_X_PAC.pkl",
+        "scaler_y": "scaler_y_t22_k7_PAC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_PAC.keras",
+        "scaler_X": "scaler_X_PAC.pkl",
+        "scaler_y": "scaler_y_t23_k3_PAC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_PAC.keras",
+        "scaler_X": "scaler_X_PAC.pkl",
+        "scaler_y": "scaler_y_t23_k7_PAC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "PET": {
+      "task2_1": {
+        "model": "task2_1_PET.keras",
+        "scaler_X": "scaler_X_PET.pkl",
+        "scaler_y": "scaler_y_t21_PET.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_PET.keras",
+        "scaler_X": "scaler_X_PET.pkl",
+        "scaler_y": "scaler_y_t22_k3_PET.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_PET.keras",
+        "scaler_X": "scaler_X_PET.pkl",
+        "scaler_y": "scaler_y_t22_k7_PET.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_PET.keras",
+        "scaler_X": "scaler_X_PET.pkl",
+        "scaler_y": "scaler_y_t23_k3_PET.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_PET.keras",
+        "scaler_X": "scaler_X_PET.pkl",
+        "scaler_y": "scaler_y_t23_k7_PET.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "PGC": {
+      "task2_1": {
+        "model": "task2_1_PGC.keras",
+        "scaler_X": "scaler_X_PGC.pkl",
+        "scaler_y": "scaler_y_t21_PGC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_PGC.keras",
+        "scaler_X": "scaler_X_PGC.pkl",
+        "scaler_y": "scaler_y_t22_k3_PGC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_PGC.keras",
+        "scaler_X": "scaler_X_PGC.pkl",
+        "scaler_y": "scaler_y_t22_k7_PGC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_PGC.keras",
+        "scaler_X": "scaler_X_PGC.pkl",
+        "scaler_y": "scaler_y_t23_k3_PGC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_PGC.keras",
+        "scaler_X": "scaler_X_PGC.pkl",
+        "scaler_y": "scaler_y_t23_k7_PGC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "PPC": {
+      "task2_1": {
+        "model": "task2_1_PPC.keras",
+        "scaler_X": "scaler_X_PPC.pkl",
+        "scaler_y": "scaler_y_t21_PPC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_PPC.keras",
+        "scaler_X": "scaler_X_PPC.pkl",
+        "scaler_y": "scaler_y_t22_k3_PPC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_PPC.keras",
+        "scaler_X": "scaler_X_PPC.pkl",
+        "scaler_y": "scaler_y_t22_k7_PPC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_PPC.keras",
+        "scaler_X": "scaler_X_PPC.pkl",
+        "scaler_y": "scaler_y_t23_k3_PPC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_PPC.keras",
+        "scaler_X": "scaler_X_PPC.pkl",
+        "scaler_y": "scaler_y_t23_k7_PPC.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "PVD": {
+      "task2_1": {
+        "model": "task2_1_PVD.keras",
+        "scaler_X": "scaler_X_PVD.pkl",
+        "scaler_y": "scaler_y_t21_PVD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_PVD.keras",
+        "scaler_X": "scaler_X_PVD.pkl",
+        "scaler_y": "scaler_y_t22_k3_PVD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_PVD.keras",
+        "scaler_X": "scaler_X_PVD.pkl",
+        "scaler_y": "scaler_y_t22_k7_PVD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_PVD.keras",
+        "scaler_X": "scaler_X_PVD.pkl",
+        "scaler_y": "scaler_y_t23_k3_PVD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_PVD.keras",
+        "scaler_X": "scaler_X_PVD.pkl",
+        "scaler_y": "scaler_y_t23_k7_PVD.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "RAL": {
+      "task2_1": {
+        "model": "task2_1_RAL.keras",
+        "scaler_X": "scaler_X_RAL.pkl",
+        "scaler_y": "scaler_y_t21_RAL.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_RAL.keras",
+        "scaler_X": "scaler_X_RAL.pkl",
+        "scaler_y": "scaler_y_t22_k3_RAL.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_RAL.keras",
+        "scaler_X": "scaler_X_RAL.pkl",
+        "scaler_y": "scaler_y_t22_k7_RAL.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_RAL.keras",
+        "scaler_X": "scaler_X_RAL.pkl",
+        "scaler_y": "scaler_y_t23_k3_RAL.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_RAL.keras",
+        "scaler_X": "scaler_X_RAL.pkl",
+        "scaler_y": "scaler_y_t23_k7_RAL.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "SAM": {
+      "task2_1": {
+        "model": "task2_1_SAM.keras",
+        "scaler_X": "scaler_X_SAM.pkl",
+        "scaler_y": "scaler_y_t21_SAM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_SAM.keras",
+        "scaler_X": "scaler_X_SAM.pkl",
+        "scaler_y": "scaler_y_t22_k3_SAM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_SAM.keras",
+        "scaler_X": "scaler_X_SAM.pkl",
+        "scaler_y": "scaler_y_t22_k7_SAM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_SAM.keras",
+        "scaler_X": "scaler_X_SAM.pkl",
+        "scaler_y": "scaler_y_t23_k3_SAM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_SAM.keras",
+        "scaler_X": "scaler_X_SAM.pkl",
+        "scaler_y": "scaler_y_t23_k7_SAM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "SFI": {
+      "task2_1": {
+        "model": "task2_1_SFI.keras",
+        "scaler_X": "scaler_X_SFI.pkl",
+        "scaler_y": "scaler_y_t21_SFI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_SFI.keras",
+        "scaler_X": "scaler_X_SFI.pkl",
+        "scaler_y": "scaler_y_t22_k3_SFI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_SFI.keras",
+        "scaler_X": "scaler_X_SFI.pkl",
+        "scaler_y": "scaler_y_t22_k7_SFI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_SFI.keras",
+        "scaler_X": "scaler_X_SFI.pkl",
+        "scaler_y": "scaler_y_t23_k3_SFI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_SFI.keras",
+        "scaler_X": "scaler_X_SFI.pkl",
+        "scaler_y": "scaler_y_t23_k7_SFI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "SJS": {
+      "task2_1": {
+        "model": "task2_1_SJS.keras",
+        "scaler_X": "scaler_X_SJS.pkl",
+        "scaler_y": "scaler_y_t21_SJS.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_SJS.keras",
+        "scaler_X": "scaler_X_SJS.pkl",
+        "scaler_y": "scaler_y_t22_k3_SJS.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_SJS.keras",
+        "scaler_X": "scaler_X_SJS.pkl",
+        "scaler_y": "scaler_y_t22_k7_SJS.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_SJS.keras",
+        "scaler_X": "scaler_X_SJS.pkl",
+        "scaler_y": "scaler_y_t23_k3_SJS.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_SJS.keras",
+        "scaler_X": "scaler_X_SJS.pkl",
+        "scaler_y": "scaler_y_t23_k7_SJS.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "SSI": {
+      "task2_1": {
+        "model": "task2_1_SSI.keras",
+        "scaler_X": "scaler_X_SSI.pkl",
+        "scaler_y": "scaler_y_t21_SSI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_SSI.keras",
+        "scaler_X": "scaler_X_SSI.pkl",
+        "scaler_y": "scaler_y_t22_k3_SSI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_SSI.keras",
+        "scaler_X": "scaler_X_SSI.pkl",
+        "scaler_y": "scaler_y_t22_k7_SSI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_SSI.keras",
+        "scaler_X": "scaler_X_SSI.pkl",
+        "scaler_y": "scaler_y_t23_k3_SSI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_SSI.keras",
+        "scaler_X": "scaler_X_SSI.pkl",
+        "scaler_y": "scaler_y_t23_k7_SSI.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "STB": {
+      "task2_1": {
+        "model": "task2_1_STB.keras",
+        "scaler_X": "scaler_X_STB.pkl",
+        "scaler_y": "scaler_y_t21_STB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_STB.keras",
+        "scaler_X": "scaler_X_STB.pkl",
+        "scaler_y": "scaler_y_t22_k3_STB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_STB.keras",
+        "scaler_X": "scaler_X_STB.pkl",
+        "scaler_y": "scaler_y_t22_k7_STB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_STB.keras",
+        "scaler_X": "scaler_X_STB.pkl",
+        "scaler_y": "scaler_y_t23_k3_STB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_STB.keras",
+        "scaler_X": "scaler_X_STB.pkl",
+        "scaler_y": "scaler_y_t23_k7_STB.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "TDH": {
+      "task2_1": {
+        "model": "task2_1_TDH.keras",
+        "scaler_X": "scaler_X_TDH.pkl",
+        "scaler_y": "scaler_y_t21_TDH.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_TDH.keras",
+        "scaler_X": "scaler_X_TDH.pkl",
+        "scaler_y": "scaler_y_t22_k3_TDH.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_TDH.keras",
+        "scaler_X": "scaler_X_TDH.pkl",
+        "scaler_y": "scaler_y_t22_k7_TDH.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_TDH.keras",
+        "scaler_X": "scaler_X_TDH.pkl",
+        "scaler_y": "scaler_y_t23_k3_TDH.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_TDH.keras",
+        "scaler_X": "scaler_X_TDH.pkl",
+        "scaler_y": "scaler_y_t23_k7_TDH.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "VIP": {
+      "task2_1": {
+        "model": "task2_1_VIP.keras",
+        "scaler_X": "scaler_X_VIP.pkl",
+        "scaler_y": "scaler_y_t21_VIP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_VIP.keras",
+        "scaler_X": "scaler_X_VIP.pkl",
+        "scaler_y": "scaler_y_t22_k3_VIP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_VIP.keras",
+        "scaler_X": "scaler_X_VIP.pkl",
+        "scaler_y": "scaler_y_t22_k7_VIP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_VIP.keras",
+        "scaler_X": "scaler_X_VIP.pkl",
+        "scaler_y": "scaler_y_t23_k3_VIP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_VIP.keras",
+        "scaler_X": "scaler_X_VIP.pkl",
+        "scaler_y": "scaler_y_t23_k7_VIP.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "VNE": {
+      "task2_1": {
+        "model": "task2_1_VNE.keras",
+        "scaler_X": "scaler_X_VNE.pkl",
+        "scaler_y": "scaler_y_t21_VNE.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_VNE.keras",
+        "scaler_X": "scaler_X_VNE.pkl",
+        "scaler_y": "scaler_y_t22_k3_VNE.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_VNE.keras",
+        "scaler_X": "scaler_X_VNE.pkl",
+        "scaler_y": "scaler_y_t22_k7_VNE.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_VNE.keras",
+        "scaler_X": "scaler_X_VNE.pkl",
+        "scaler_y": "scaler_y_t23_k3_VNE.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_VNE.keras",
+        "scaler_X": "scaler_X_VNE.pkl",
+        "scaler_y": "scaler_y_t23_k7_VNE.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    },
+    "VNM": {
+      "task2_1": {
+        "model": "task2_1_VNM.keras",
+        "scaler_X": "scaler_X_VNM.pkl",
+        "scaler_y": "scaler_y_t21_VNM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_1d"
+      },
+      "task2_2_k3": {
+        "model": "task2_2_k3_VNM.keras",
+        "scaler_X": "scaler_X_VNM.pkl",
+        "scaler_y": "scaler_y_t22_k3_VNM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_3d",
+        "k": 3
+      },
+      "task2_2_k7": {
+        "model": "task2_2_k7_VNM.keras",
+        "scaler_X": "scaler_X_VNM.pkl",
+        "scaler_y": "scaler_y_t22_k7_VNM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 1,
+        "target": "log_return_cumulative_7d",
+        "k": 7
+      },
+      "task2_3_k3": {
+        "model": "task2_3_k3_VNM.keras",
+        "scaler_X": "scaler_X_VNM.pkl",
+        "scaler_y": "scaler_y_t23_k3_VNM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 3,
+        "target": "log_return_consecutive_3d",
+        "k": 3
+      },
+      "task2_3_k7": {
+        "model": "task2_3_k7_VNM.keras",
+        "scaler_X": "scaler_X_VNM.pkl",
+        "scaler_y": "scaler_y_t23_k7_VNM.pkl",
+        "lookback": 30,
+        "n_features": 24,
+        "output_size": 7,
+        "target": "log_return_consecutive_7d",
+        "k": 7
+      }
+    }
+  }
+}
