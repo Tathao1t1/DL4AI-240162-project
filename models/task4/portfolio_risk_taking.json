@@ -1,0 +1,22 @@
+{
+  "label": "risk_taking",
+  "expected_return": 0.135644,
+  "annual_volatility": 0.158778,
+  "sharpe_ratio": 0.5709,
+  "rf_rate": 0.045,
+  "weights": {
+    "FMC": 0.272438,
+    "RAL": 0.271648,
+    "GMD": 0.067302,
+    "PPC": 0.258496,
+    "DMC": 0.130115
+  },
+  "tickers": [
+    "FMC",
+    "RAL",
+    "GMD",
+    "PPC",
+    "DMC"
+  ],
+  "n_stocks": 5
+}

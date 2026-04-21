@@ -1,0 +1,43 @@
+services:
+
+  mongo:
+    image: mongo:7
+    container_name: quantpulse_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: quantpulse
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: quantpulse_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URL: mongodb://mongo:27017
+      MONGO_DB:  quantpulse
+    depends_on:
+      - mongo
+    volumes:
+      # Mount CSV data so pipeline writes are persisted on the host
+      - ./clean-historical-data-2026:/app/clean-historical-data-2026
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: quantpulse_ui
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  mongo_data:

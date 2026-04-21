@@ -1,0 +1,387 @@
+{
+  "tickers": [
+    "ACB",
+    "BMC",
+    "BMP",
+    "DHA",
+    "DHG",
+    "DMC",
+    "FMC",
+    "FPT",
+    "GMD",
+    "HAX",
+    "KDC",
+    "MHC",
+    "PAC",
+    "PET",
+    "PGC",
+    "PPC",
+    "PVD",
+    "RAL",
+    "SAM",
+    "SFI",
+    "SJS",
+    "SSI",
+    "STB",
+    "TDH",
+    "VIP",
+    "VNE",
+    "VNM"
+  ],
+  "feature_cols": [
+    "Return_1d",
+    "Return_5d",
+    "Return_10d",
+    "Return_20d",
+    "SMA10_vs_SMA20",
+    "SMA20_vs_SMA50",
+    "EMA10_vs_EMA20",
+    "Close_vs_SMA20",
+    "Close_vs_SMA50",
+    "RSI_14",
+    "MACD_pct",
+    "MACD_sig_pct",
+    "MACD_hist_pct",
+    "BB_width",
+    "BB_pct",
+    "ATR_pct",
+    "Volatility_10",
+    "Volatility_20",
+    "Volume_ratio",
+    "High_Low_pct",
+    "VN_limit_prox",
+    "OC_pct",
+    "Upper_shadow",
+    "Lower_shadow"
+  ],
+  "lookback": 30,
+  "n_features": 24,
+  "label_W": 5,
+  "label_Q": 0.3,
+  "models": {
+    "ACB": {
+      "task3_buy": {
+        "model": "task3_buy_ACB.keras",
+        "scaler_X": "../task2/scaler_X_ACB.pkl",
+        "threshold": 0.58
+      },
+      "task3_sell": {
+        "model": "task3_sell_ACB.keras",
+        "scaler_X": "../task2/scaler_X_ACB.pkl",
+        "threshold": 0.58
+      }
+    },
+    "BMC": {
+      "task3_buy": {
+        "model": "task3_buy_BMC.keras",
+        "scaler_X": "../task2/scaler_X_BMC.pkl",
+        "threshold": 0.48
+      },
+      "task3_sell": {
+        "model": "task3_sell_BMC.keras",
+        "scaler_X": "../task2/scaler_X_BMC.pkl",
+        "threshold": 0.64
+      }
+    },
+    "BMP": {
+      "task3_buy": {
+        "model": "task3_buy_BMP.keras",
+        "scaler_X": "../task2/scaler_X_BMP.pkl",
+        "threshold": 0.54
+      },
+      "task3_sell": {
+        "model": "task3_sell_BMP.keras",
+        "scaler_X": "../task2/scaler_X_BMP.pkl",
+        "threshold": 0.52
+      }
+    },
+    "DHA": {
+      "task3_buy": {
+        "model": "task3_buy_DHA.keras",
+        "scaler_X": "../task2/scaler_X_DHA.pkl",
+        "threshold": 0.48
+      },
+      "task3_sell": {
+        "model": "task3_sell_DHA.keras",
+        "scaler_X": "../task2/scaler_X_DHA.pkl",
+        "threshold": 0.58
+      }
+    },
+    "DHG": {
+      "task3_buy": {
+        "model": "task3_buy_DHG.keras",
+        "scaler_X": "../task2/scaler_X_DHG.pkl",
+        "threshold": 0.6
+      },
+      "task3_sell": {
+        "model": "task3_sell_DHG.keras",
+        "scaler_X": "../task2/scaler_X_DHG.pkl",
+        "threshold": 0.6
+      }
+    },
+    "DMC": {
+      "task3_buy": {
+        "model": "task3_buy_DMC.keras",
+        "scaler_X": "../task2/scaler_X_DMC.pkl",
+        "threshold": 0.58
+      },
+      "task3_sell": {
+        "model": "task3_sell_DMC.keras",
+        "scaler_X": "../task2/scaler_X_DMC.pkl",
+        "threshold": 0.6
+      }
+    },
+    "FMC": {
+      "task3_buy": {
+        "model": "task3_buy_FMC.keras",
+        "scaler_X": "../task2/scaler_X_FMC.pkl",
+        "threshold": 0.58
+      },
+      "task3_sell": {
+        "model": "task3_sell_FMC.keras",
+        "scaler_X": "../task2/scaler_X_FMC.pkl",
+        "threshold": 0.52
+      }
+    },
+    "FPT": {
+      "task3_buy": {
+        "model": "task3_buy_FPT.keras",
+        "scaler_X": "../task2/scaler_X_FPT.pkl",
+        "threshold": 0.58
+      },
+      "task3_sell": {
+        "model": "task3_sell_FPT.keras",
+        "scaler_X": "../task2/scaler_X_FPT.pkl",
+        "threshold": 0.6
+      }
+    },
+    "GMD": {
+      "task3_buy": {
+        "model": "task3_buy_GMD.keras",
+        "scaler_X": "../task2/scaler_X_GMD.pkl",
+        "threshold": 0.56
+      },
+      "task3_sell": {
+        "model": "task3_sell_GMD.keras",
+        "scaler_X": "../task2/scaler_X_GMD.pkl",
+        "threshold": 0.54
+      }
+    },
+    "HAX": {
+      "task3_buy": {
+        "model": "task3_buy_HAX.keras",
+        "scaler_X": "../task2/scaler_X_HAX.pkl",
+        "threshold": 0.56
+      },
+      "task3_sell": {
+        "model": "task3_sell_HAX.keras",
+        "scaler_X": "../task2/scaler_X_HAX.pkl",
+        "threshold": 0.68
+      }
+    },
+    "KDC": {
+      "task3_buy": {
+        "model": "task3_buy_KDC.keras",
+        "scaler_X": "../task2/scaler_X_KDC.pkl",
+        "threshold": 0.56
+      },
+      "task3_sell": {
+        "model": "task3_sell_KDC.keras",
+        "scaler_X": "../task2/scaler_X_KDC.pkl",
+        "threshold": 0.64
+      }
+    },
+    "MHC": {
+      "task3_buy": {
+        "model": "task3_buy_MHC.keras",
+        "scaler_X": "../task2/scaler_X_MHC.pkl",
+        "threshold": 0.6
+      },
+      "task3_sell": {
+        "model": "task3_sell_MHC.keras",
+        "scaler_X": "../task2/scaler_X_MHC.pkl",
+        "threshold": 0.6
+      }
+    },
+    "PAC": {
+      "task3_buy": {
+        "model": "task3_buy_PAC.keras",
+        "scaler_X": "../task2/scaler_X_PAC.pkl",
+        "threshold": 0.58
+      },
+      "task3_sell": {
+        "model": "task3_sell_PAC.keras",
+        "scaler_X": "../task2/scaler_X_PAC.pkl",
+        "threshold": 0.66
+      }
+    },
+    "PET": {
+      "task3_buy": {
+        "model": "task3_buy_PET.keras",
+        "scaler_X": "../task2/scaler_X_PET.pkl",
+        "threshold": 0.5
+      },
+      "task3_sell": {
+        "model": "task3_sell_PET.keras",
+        "scaler_X": "../task2/scaler_X_PET.pkl",
+        "threshold": 0.58
+      }
+    },
+    "PGC": {
+      "task3_buy": {
+        "model": "task3_buy_PGC.keras",
+        "scaler_X": "../task2/scaler_X_PGC.pkl",
+        "threshold": 0.54
+      },
+      "task3_sell": {
+        "model": "task3_sell_PGC.keras",
+        "scaler_X": "../task2/scaler_X_PGC.pkl",
+        "threshold": 0.56
+      }
+    },
+    "PPC": {
+      "task3_buy": {
+        "model": "task3_buy_PPC.keras",
+        "scaler_X": "../task2/scaler_X_PPC.pkl",
+        "threshold": 0.56
+      },
+      "task3_sell": {
+        "model": "task3_sell_PPC.keras",
+        "scaler_X": "../task2/scaler_X_PPC.pkl",
+        "threshold": 0.58
+      }
+    },
+    "PVD": {
+      "task3_buy": {
+        "model": "task3_buy_PVD.keras",
+        "scaler_X": "../task2/scaler_X_PVD.pkl",
+        "threshold": 0.56
+      },
+      "task3_sell": {
+        "model": "task3_sell_PVD.keras",
+        "scaler_X": "../task2/scaler_X_PVD.pkl",
+        "threshold": 0.52
+      }
+    },
+    "RAL": {
+      "task3_buy": {
+        "model": "task3_buy_RAL.keras",
+        "scaler_X": "../task2/scaler_X_RAL.pkl",
+        "threshold": 0.64
+      },
+      "task3_sell": {
+        "model": "task3_sell_RAL.keras",
+        "scaler_X": "../task2/scaler_X_RAL.pkl",
+        "threshold": 0.54
+      }
+    },
+    "SAM": {
+      "task3_buy": {
+        "model": "task3_buy_SAM.keras",
+        "scaler_X": "../task2/scaler_X_SAM.pkl",
+        "threshold": 0.58
+      },
+      "task3_sell": {
+        "model": "task3_sell_SAM.keras",
+        "scaler_X": "../task2/scaler_X_SAM.pkl",
+        "threshold": 0.58
+      }
+    },
+    "SFI": {
+      "task3_buy": {
+        "model": "task3_buy_SFI.keras",
+        "scaler_X": "../task2/scaler_X_SFI.pkl",
+        "threshold": 0.62
+      },
+      "task3_sell": {
+        "model": "task3_sell_SFI.keras",
+        "scaler_X": "../task2/scaler_X_SFI.pkl",
+        "threshold": 0.6
+      }
+    },
+    "SJS": {
+      "task3_buy": {
+        "model": "task3_buy_SJS.keras",
+        "scaler_X": "../task2/scaler_X_SJS.pkl",
+        "threshold": 0.56
+      },
+      "task3_sell": {
+        "model": "task3_sell_SJS.keras",
+        "scaler_X": "../task2/scaler_X_SJS.pkl",
+        "threshold": 0.64
+      }
+    },
+    "SSI": {
+      "task3_buy": {
+        "model": "task3_buy_SSI.keras",
+        "scaler_X": "../task2/scaler_X_SSI.pkl",
+        "threshold": 0.52
+      },
+      "task3_sell": {
+        "model": "task3_sell_SSI.keras",
+        "scaler_X": "../task2/scaler_X_SSI.pkl",
+        "threshold": 0.56
+      }
+    },
+    "STB": {
+      "task3_buy": {
+        "model": "task3_buy_STB.keras",
+        "scaler_X": "../task2/scaler_X_STB.pkl",
+        "threshold": 0.52
+      },
+      "task3_sell": {
+        "model": "task3_sell_STB.keras",
+        "scaler_X": "../task2/scaler_X_STB.pkl",
+        "threshold": 0.62
+      }
+    },
+    "TDH": {
+      "task3_buy": {
+        "model": "task3_buy_TDH.keras",
+        "scaler_X": "../task2/scaler_X_TDH.pkl",
+        "threshold": 0.5
+      },
+      "task3_sell": {
+        "model": "task3_sell_TDH.keras",
+        "scaler_X": "../task2/scaler_X_TDH.pkl",
+        "threshold": 0.44
+      }
+    },
+    "VIP": {
+      "task3_buy": {
+        "model": "task3_buy_VIP.keras",
+        "scaler_X": "../task2/scaler_X_VIP.pkl",
+        "threshold": 0.58
+      },
+      "task3_sell": {
+        "model": "task3_sell_VIP.keras",
+        "scaler_X": "../task2/scaler_X_VIP.pkl",
+        "threshold": 0.58
+      }
+    },
+    "VNE": {
+      "task3_buy": {
+        "model": "task3_buy_VNE.keras",
+        "scaler_X": "../task2/scaler_X_VNE.pkl",
+        "threshold": 0.6
+      },
+      "task3_sell": {
+        "model": "task3_sell_VNE.keras",
+        "scaler_X": "../task2/scaler_X_VNE.pkl",
+        "threshold": 0.64
+      }
+    },
+    "VNM": {
+      "task3_buy": {
+        "model": "task3_buy_VNM.keras",
+        "scaler_X": "../task2/scaler_X_VNM.pkl",
+        "threshold": 0.64
+      },
+      "task3_sell": {
+        "model": "task3_sell_VNM.keras",
+        "scaler_X": "../task2/scaler_X_VNM.pkl",
+        "threshold": 0.6
+      }
+    }
+  }
+}

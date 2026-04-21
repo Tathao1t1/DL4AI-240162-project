@@ -1,0 +1,24 @@
+{
+  "label": "prudent",
+  "expected_return": 0.116091,
+  "annual_volatility": 0.136737,
+  "sharpe_ratio": 0.5199,
+  "rf_rate": 0.045,
+  "weights": {
+    "FMC": 0.175333,
+    "RAL": 0.174591,
+    "SFI": 0.159287,
+    "PPC": 0.175069,
+    "DHA": 0.143859,
+    "DMC": 0.17186
+  },
+  "tickers": [
+    "FMC",
+    "RAL",
+    "SFI",
+    "PPC",
+    "DHA",
+    "DMC"
+  ],
+  "n_stocks": 6
+}

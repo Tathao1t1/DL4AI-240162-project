@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-bg-deep: #F8FAFC;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-sidebar: #F1F5F9;
+  --color-border-theme: #E2E8F0;
+  --color-accent-theme: #4F46E5;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-pos: #10B981;
+  --color-neg: #EF4444;
+  
+  --font-sans: "Inter", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-serif: "Playfair Display", serif;
+  
+  --shadow-premium: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-premium-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-bg-deep text-text-primary font-sans antialiased;
+  }
+  
+  h1, h2, h3 {
+    @apply tracking-tight;
+  }
+}
+
+@layer components {
+  .theme-card {
+    @apply bg-bg-surface border border-border-theme rounded-2xl p-6 transition-all duration-300 shadow-premium hover:shadow-premium-xl;
+  }
+  
+  .theme-input {
+    @apply bg-bg-surface border border-border-theme rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-theme/20 focus:border-accent-theme transition-all;
+  }
+  
+  .theme-label {
+    @apply text-[10px] uppercase tracking-[0.1em] text-text-muted font-bold mb-2 block;
+  }
+
+  .theme-btn-primary {
+    @apply bg-accent-theme text-white rounded-xl px-5 py-3 text-sm font-semibold hover:bg-accent-theme/90 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .theme-btn-ghost {
+    @apply text-text-secondary rounded-xl px-4 py-2 text-sm font-medium hover:bg-border-theme/50 transition-all;
+  }
+}

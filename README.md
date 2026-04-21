@@ -1,160 +1,241 @@
-# QuantPulse AI — Stock Market Prediction Platform
+<div align="center">
 
-A full-stack deep learning web application for stock price prediction, trading signal generation, and portfolio optimization across **Vietnamese (HOSE)** and **NASDAQ** equity markets.
+# QuantPulse AI
 
----
+### Financial Time Series Prediction & Systematic Trading Research Platform
 
-## Overview
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.21-FF6F00?style=flat-square&logo=tensorflow&logoColor=white)
+![Keras](https://img.shields.io/badge/Keras-3.13-D00000?style=flat-square&logo=keras&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.8-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
+![MongoDB](https://img.shields.io/badge/MongoDB-7-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
 
-QuantPulse AI combines per-ticker LSTM/CNN models trained on historical OHLCV data with a production-ready web dashboard. Users can explore multi-horizon price forecasts, buy/sell signals, and optimized portfolio allocations — all updating automatically via a daily data pipeline.
+An end-to-end research and deployment platform for deep learning-based financial forecasting — covering **feature engineering**, **multi-horizon price prediction**, **systematic trading signal generation**, and **portfolio optimization** across Vietnamese (HOSE) and NASDAQ equity markets.
 
----
-
-## Features
-
-| Feature | Details |
-|---------|---------|
-| **Price Prediction** | Next-day, 3rd-day, and 7th-day closing price forecasts |
-| **Trading Signals** | Buy / Sell / Hold with model confidence scores |
-| **Portfolio Optimization** | Prudent and risk-taking allocations across VN tickers |
-| **Live Prices** | Real-time quote updates via Server-Sent Events (SSE) |
-| **Candlestick Charts** | OHLCV visualization with TradingView Lightweight Charts |
-| **Multi-market Search** | Fuzzy ticker search across VN and NASDAQ |
-| **Auth** | JWT-based user accounts with localStorage token persistence |
-| **Daily Pipeline** | Auto-ingest + re-predict at 06:00 ICT via APScheduler |
+</div>
 
 ---
 
-## Machine Learning Tasks
+## Research Overview
 
-### Task 1 — NASDAQ Price Prediction (LSTM)
-- **Architecture:** Per-ticker LSTM with 20 ratio-based technical indicators
-- **Horizons:** Next-day (`k=1`), 3rd-day (`k=3`), 7th-day (`k=7`)
-- **Tickers:** 31 NASDAQ stocks (AAPL, INTC, TXN, AMGN, CBSH, MAT, MNST, ROST, …)
-- **Features:** Return (1/5/10/20d), SMA/EMA ratios, RSI-14, MACD, Bollinger Bands, ATR, volatility, volume ratio
+This project addresses the full ML research lifecycle applied to financial time series:
 
-### Task 2 — Vietnam Price Prediction (CNN-LSTM)
-- **Architecture:** Global CNN-LSTM backbone + per-ticker heads
-- **Horizons:** Next-day (`task2_1`), 3rd-day (`task2_2_k3`), 7th-day (`task2_2_k7`)
-- **Tickers:** 28 HOSE stocks (FPT, ACB, VNM, DHG, FMC, GMD, STB, SSI, …)
-- **Features:** 24 engineered indicators derived from OHLCV data
+```
+Raw OHLCV Data
+      │
+      ▼
+Feature Engineering ──────── 20–24 ratio-based technical indicators
+      │                       (Returns, SMA/EMA, RSI, MACD, BB, ATR, Volatility)
+      ▼
+Model Training ───────────── LSTM (NASDAQ) · CNN-LSTM (Vietnam)
+      │                       Per-ticker models · Lookback window = 60 days
+      ▼
+Evaluation & Backtesting ─── MAE · MAPE · RMSE on held-out test set
+      │                       Train / Validation / Test split per ticker
+      ▼
+Production Pipeline ─────── Daily auto-ingest → inference → MongoDB store
+      │                       FastAPI serving · React dashboard · Live SSE feed
+      ▼
+Strategy Layer ──────────── Buy/Sell signal classifiers · Portfolio optimization
+```
 
-### Task 3 — Trading Signal Classification
-- **Architecture:** Binary classifiers (buy model + sell model per ticker)
-- **Output:** Buy / Sell probability + Hold threshold
-- **Models:** 54 Keras models (27 buy + 27 sell)
-- **Metrics:** AUC, F1, Precision, Recall per ticker
+---
 
-### Task 4 — Portfolio Optimization
-- **Output:** Two recommended portfolios — *prudent* (risk-averse) and *risk-taking* (return-maximizing)
-- **Method:** Risk scoring + profitability scoring across 27 VN tickers
-- **Artifacts:** `portfolio_prudent.json`, `portfolio_risk_taking.json`, per-ticker risk/profitability scores
+## Key Technical Highlights
+
+### Feature Engineering for Financial Time Series
+Hand-crafted **20–24 ratio-normalized indicators** designed to be scale-invariant across tickers and time periods:
+
+| Category | Features |
+|----------|----------|
+| **Momentum** | Returns over 1d / 5d / 10d / 20d windows |
+| **Trend** | SMA10 vs SMA20 · SMA20 vs SMA50 · EMA10 vs EMA20 · Price vs SMA20/50 |
+| **Oscillators** | RSI-14 · MACD (line, signal, histogram) — all normalized by price |
+| **Volatility** | Bollinger Band width & %B · ATR-14 (% of price) · Rolling std (10d, 20d) |
+| **Volume** | Volume ratio vs 20-day average |
+| **Range** | High-Low range as % of close |
+
+All features expressed as **ratios** (not absolute values) to ensure stationarity and cross-ticker comparability.
+
+---
+
+### Deep Learning Architectures
+
+#### Task 1 — Per-Ticker LSTM (NASDAQ)
+- Separate LSTM model per ticker trained on 2 years of daily data
+- Lookback window: 60 trading days → single-step output (k-th day price)
+- Target: k-th day closing price via return prediction → inverse-transformed to price
+- Trained for three horizons independently: `k=1`, `k=3`, `k=7`
+
+#### Task 2 — CNN-LSTM (Vietnam)
+- **Global backbone** shared across all 28 VN tickers — captures market-wide patterns
+- **Per-ticker heads** — fine-tune to individual stock behavior
+- 1D CNN extracts local temporal features → LSTM models sequential dependencies
+- Trained for three horizons: next-day · +3rd day · +7th day
+
+#### Task 3 — Trading Signal Classifiers
+- Separate **binary classifiers** (buy signal model + sell signal model) per ticker
+- Predicts probability of a significant upward/downward move
+- Buy/Sell/Hold decision via confidence threshold
+- Evaluated on AUC, F1, Precision, Recall
+
+#### Task 4 — Portfolio Optimization
+- Risk scoring: per-ticker volatility and drawdown metrics
+- Profitability scoring: return potential ranking
+- Output: two allocation strategies — **prudent** (risk-minimizing) and **risk-taking** (return-maximizing)
+
+---
+
+### Model Evaluation
+
+Each model is evaluated on a strict **train / validation / test chronological split** (no data leakage):
+
+| Task | Metric | Notes |
+|------|--------|-------|
+| Task 1 (NASDAQ) | MAE · MAPE | Per-ticker, reported in USD |
+| Task 2 (Vietnam) | MAE · MAPE · RMSE | Per-ticker, reported in VND |
+| Task 3 (Signals) | AUC · F1 · Precision · Recall | Stored in `task3_buy/sell_metrics.csv` |
+
+Model artifacts include `scaler_X.pkl` and `scaler_y.pkl` per ticker, fitted only on training data and applied consistently at inference.
+
+---
+
+### Production ML Pipeline
+
+```
+06:00 ICT (daily, APScheduler)
+    │
+    ├── Ingest VN      yfinance (.VN) → append new rows to local OHLCV CSVs
+    ├── Ingest NASDAQ  yfinance (plain) → append new rows to local OHLCV CSVs
+    ├── Feature Eng.   Recompute all indicators on updated data (inside inference.py)
+    ├── Predict        Task 2 models → predictions for all 3 horizons × 28 tickers
+    └── Store          Upsert results into MongoDB predictions collection
+```
+
+- Live top-up on every prediction request (no stale data)
+- Model cache in-memory — O(1) inference after first load
+- Market-aware SSE stream (VN tries `.VN` suffix; NASDAQ skips it)
+- Manual pipeline trigger: `POST /api/v1/pipeline/run`
+
+---
+
+## System Architecture
+
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │                     React Dashboard                     │
+  │  Price Predictions · Trading Signals · Portfolio View   │
+  │  Candlestick Charts · Live SSE Prices · Ticker Search   │
+  └──────────────────────┬──────────────────────────────────┘
+                         │ REST + SSE
+  ┌──────────────────────▼──────────────────────────────────┐
+  │                    FastAPI Backend                      │
+  │  /predict  /signals  /portfolio  /live  /market  /auth  │
+  └───────────┬───────────────────────────┬─────────────────┘
+              │                           │
+  ┌───────────▼──────────┐   ┌────────────▼────────────────┐
+  │   TF/Keras Models    │   │         MongoDB             │
+  │  Task1 · 2 · 3 · 4  │   │  predictions · users ·      │
+  │  (in-memory cache)   │   │  pipeline_runs              │
+  └──────────────────────┘   └─────────────────────────────┘
+```
 
 ---
 
 ## Tech Stack
 
-**Backend**
-- [FastAPI](https://fastapi.tiangolo.com/) — async REST API
-- [TensorFlow 2 / Keras 3](https://keras.io/) — model inference
-- [Motor](https://motor.readthedocs.io/) — async MongoDB driver
-- [APScheduler](https://apscheduler.readthedocs.io/) — daily pipeline cron
-- [yfinance](https://github.com/ranaroussi/yfinance) — market data ingestion
-- [python-jose](https://github.com/mpdavis/python-jose) + [bcrypt](https://github.com/pyca/bcrypt/) — JWT auth
+<table>
+<tr>
+<td valign="top" width="50%">
 
-**Frontend**
-- [React 19](https://react.dev/) + TypeScript + [Vite 6](https://vite.dev/)
-- [Tailwind CSS 4](https://tailwindcss.com/) — styling
-- [Lightweight Charts](https://tradingview.github.io/lightweight-charts/) — candlestick charts
-- [Recharts](https://recharts.org/) — area/line charts
-- [Fuse.js](https://www.fusejs.io/) — client-side fuzzy search
-- [Motion](https://motion.dev/) — animations
+**Research & Modeling**
+- **TensorFlow 2.21 / Keras 3.13** — LSTM, CNN-LSTM
+- **scikit-learn 1.8** — StandardScaler, train/test split, metrics
+- **NumPy · Pandas** — feature engineering, time series manipulation
+- **yfinance** — OHLCV data ingestion
 
-**Infrastructure**
-- MongoDB 7 — predictions cache + pipeline run logs
-- Docker + Docker Compose — containerized deployment
-- Nginx — reverse proxy + static file serving
+</td>
+<td valign="top" width="50%">
+
+**Engineering & Deployment**
+- **FastAPI** — async REST API + SSE streaming
+- **Motor** — async MongoDB driver
+- **APScheduler** — daily pipeline automation
+- **Docker Compose + Nginx** — containerized deployment
+- **React 19 + TypeScript + Vite** — research dashboard
+
+</td>
+</tr>
+</table>
 
 ---
 
 ## Project Structure
 
 ```
-├── api/                        # FastAPI backend
-│   ├── main.py                 # App entry point & router registration
-│   ├── database.py             # Motor/MongoDB connection
-│   ├── scheduler.py            # Daily ingest → predict → store pipeline
-│   ├── auth/                   # JWT register/login/me
-│   └── routers/
-│       ├── predict.py          # Task 2 VN price predictions
-│       ├── predict_nasdaq.py   # Task 1 NASDAQ price predictions
-│       ├── signals.py          # Task 3 buy/sell signals
-│       ├── portfolio.py        # Task 4 portfolio endpoints
-│       ├── market.py           # Quote, history, RSI endpoints
-│       ├── live.py             # SSE live price stream
-│       └── search.py           # Ticker fuzzy search
+DL4AI-240162-project/
 │
-├── ui/                         # React TypeScript frontend
-│   └── src/
-│       ├── components/         # PricePredictions, TradingSignals, Portfolio, …
-│       ├── services/           # API client (marketService, authService)
-│       ├── contexts/           # AuthContext
-│       └── hooks/              # useLivePrices (SSE)
+├── api/                          # Production API layer
+│   ├── scheduler.py              # Daily data pipeline (06:00 ICT cron)
+│   ├── auth/                     # JWT auth
+│   └── routers/
+│       ├── predict.py            # Task 2 — VN inference endpoint
+│       ├── predict_nasdaq.py     # Task 1 — NASDAQ inference endpoint
+│       ├── signals.py            # Task 3 — signal endpoint
+│       ├── portfolio.py          # Task 4 — portfolio endpoint
+│       ├── market.py             # Quote, OHLCV history, RSI
+│       └── live.py               # SSE real-time price stream
 │
 ├── models/
-│   ├── task1_1/                # NASDAQ next-day models (per ticker)
-│   ├── task1_2/k3, k7/        # NASDAQ 3rd/7th-day models (per ticker)
-│   ├── task2/                  # VN CNN-LSTM models + scalers
-│   ├── task3/                  # VN buy/sell signal models
-│   └── task4/                  # Portfolio JSON + score CSVs
+│   ├── task1_1/                  # NASDAQ LSTM — next-day (31 tickers)
+│   ├── task1_2/k3, k7/           # NASDAQ LSTM — +3d/+7d (31 tickers each)
+│   ├── task2/                    # VN CNN-LSTM models + per-ticker scalers
+│   ├── task3/                    # Buy/sell classifiers + evaluation metrics
+│   └── task4/                    # Portfolio JSONs + risk/profitability scores
 │
-├── clean-historical-data-2026/ # VN HOSE OHLCV CSVs (28 tickers)
-├── nasdaq-historical-data/     # NASDAQ OHLCV CSVs (auto-managed)
-├── inference.py                # Task 2 inference helper
+├── clean-historical-data-2026/   # VN HOSE OHLCV CSVs (28 tickers)
+├── nasdaq-historical-data/       # NASDAQ OHLCV CSVs (auto-managed, 31 tickers)
+├── inference.py                  # Feature engineering + Task 2 inference
+│
+├── ui/                           # Research dashboard (React + TypeScript)
 ├── docker-compose.yml
-├── Dockerfile.api
-├── Dockerfile.ui
-├── nginx.conf
 ├── requirements.txt
-└── .env.example
+└── 240162-project-notebook.ipynb # Model training & experiments
 ```
 
 ---
 
 ## Getting Started
 
-### Option A — Docker Compose (Recommended)
+### Option A — Docker Compose
 
 ```bash
 cp .env.example .env
 docker-compose up --build
 ```
 
-Opens on **http://localhost** (Nginx proxies UI + API).
+App on **http://localhost** · API docs on **http://localhost/api/docs**
 
 ### Option B — Local Development
 
-**Prerequisites:** Python 3.11, Node.js 20+, MongoDB 7 running on `localhost:27017`
+**Prerequisites:** Python 3.11 · Node.js 20+ · MongoDB 7 on `localhost:27017`
 
-**1. Backend**
 ```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+# Backend
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
 cp .env.example .env
 uvicorn api.main:app --reload --port 8000
+
+# Frontend (new terminal)
+cd ui && npm install && npm run dev   # → http://localhost:5173
 ```
 
-**2. Frontend** (new terminal)
-```bash
-cd ui
-npm install
-npm run dev                      # http://localhost:5173
-```
-
-**3. Environment variables** (`.env`)
-```
+**`.env`**
+```env
 MONGO_URL=mongodb://localhost:27017
 MONGO_DB=quantpulse
 JWT_SECRET=change-me-in-production
@@ -166,35 +247,16 @@ JWT_SECRET=change-me-in-production
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/v1/market/quote/{ticker}?market=VN\|NASDAQ` | Current quote |
-| `GET` | `/api/v1/market/history/{ticker}?period=1mo&market=VN` | OHLCV bars |
 | `GET` | `/api/v1/predict/{ticker}?task=task2_1` | VN price prediction |
 | `GET` | `/api/v1/predict/nasdaq/{ticker}?k=1\|3\|7` | NASDAQ price prediction |
-| `GET` | `/api/v1/signals/{ticker}` | Buy/sell signal |
+| `GET` | `/api/v1/signals/{ticker}` | Buy/sell signal + confidence |
 | `GET` | `/api/v1/portfolio/summary` | Portfolio allocations |
+| `GET` | `/api/v1/market/history/{ticker}?period=1mo&market=VN` | OHLCV bars |
 | `GET` | `/api/v1/live/prices?tickers=FPT&market=VN` | SSE live price stream |
-| `GET` | `/api/v1/search?q=fpt` | Ticker search |
-| `POST` | `/api/v1/auth/register` | Create account |
-| `POST` | `/api/v1/auth/login` | Login → JWT token |
 | `POST` | `/api/v1/pipeline/run` | Manually trigger pipeline |
-
-Interactive docs: **http://localhost:8000/docs**
-
----
-
-## Data Pipeline
-
-The daily pipeline runs automatically at **06:00 ICT**:
-
-1. **Ingest VN** — fetch latest OHLCV via yfinance (`.VN` suffix) → append to CSVs
-2. **Ingest NASDAQ** — fetch latest OHLCV via yfinance → append to CSVs
-3. **Predict** — run Task 2 inference for all 3 horizons across all VN tickers
-4. **Store** — upsert results into MongoDB `predictions` collection
-
-Manual trigger: `POST /api/v1/pipeline/run`
 
 ---
 
 ## License
 
-This project was developed as part of the **CS313 Deep Learning** course final project.
+Developed as the final project for **CS313 — Deep Learning** course.

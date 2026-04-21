@@ -56,7 +56,7 @@
     "Lower_shadow"
   ],
   "lookback": 30,
-  "artifact_dir": "/Users/ttt/Downloads/DL4AI-240162-project/models/task2",
+  "artifact_dir": "models/task2",
   "models": {
     "ACB": {
       "task2_1": {

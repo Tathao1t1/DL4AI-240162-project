@@ -1,0 +1,20 @@
+# Python 3.11.15
+# Install with: pip install -r requirements.txt
+
+tensorflow==2.21.0
+keras==3.13.2
+numpy==2.4.3
+pandas==3.0.1
+scipy==1.17.1
+matplotlib==3.10.8
+scikit-learn==1.8.0
+ipywidgets==8.1.8
+vnstock3==3.2.1
+jupyterlab
+
+# Task 5 — API server
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+motor==3.6.0
+apscheduler==3.10.4
+yfinance==0.2.48
