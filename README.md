@@ -218,6 +218,16 @@ docker-compose up --build
 ```
 
 App on **http://localhost** · API docs on **http://localhost/api/docs**
+<img width="1421" height="792" alt="image" src="https://github.com/user-attachments/assets/e022d876-54c9-41d2-acce-63c468c92a30" />
+<img width="1456" height="510" alt="image" src="https://github.com/user-attachments/assets/b974dd59-34a0-4b57-9f0a-95758b56c61d" />
+<img width="1431" height="798" alt="image" src="https://github.com/user-attachments/assets/e344c2ff-d08c-4df8-b266-c35b8793f437" />
+<img width="1465" height="680" alt="image" src="https://github.com/user-attachments/assets/70cb9936-1bb8-48b1-9d3b-e41eda9da3c9" />
+<img width="1147" height="627" alt="image" src="https://github.com/user-attachments/assets/22d8b3f3-a3c5-4364-9686-bb422ee5eee7" />
+
+
+
+
+
 
 ### Option B — Local Development
 
