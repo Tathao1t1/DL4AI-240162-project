@@ -14,4 +14,16 @@ __pycache__/
 # macOS
 .DS_Store
 
-# model weights were unblocked for Railway deployment
+# UI build artifacts
+ui/node_modules/
+ui/dist/
+*.tsbuildinfo
+
+# Raw data dumps inside report folder (too large for git)
+DlFinalProject/csv/
+DlFinalProject/data-vn-20230228/
+
+# Local binaries and temp files
+Docker.dmg
+PROJECT_SUMMARY.txt
+Caddyfile

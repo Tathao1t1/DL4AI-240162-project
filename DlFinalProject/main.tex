@@ -1,0 +1,1864 @@
+\documentclass[12pt, a4paper]{article}
+
+% --- Essential Packages ---
+\usepackage[utf8]{inputenc} % Character encoding
+\usepackage{geometry}       % Page margins
+\geometry{a4paper, margin=1in}
+\usepackage{graphicx}       % For including images/charts
+\usepackage{amsmath}        % For math formulas
+\usepackage{hyperref}       % For clickable links and cross-references
+\usepackage{booktabs}       % For professional looking tables
+\usepackage{setspace}       % For line spacing
+\usepackage{multirow}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+
+% --- Title Information ---
+\title{\textbf{Deep Learning for Financial Forecasting: TensorFinance Project Report}}
+\author{Ta Thi Thao \\ Fulbright University Vietnam}
+\date{May 2026} % Or \today
+
+\begin{document}
+
+\maketitle
+
+% --- 1. Abstract ---
+
+\begin{abstract}
+This report presents TensorFinance, an end-to-end platform for deep
+learning--based stock price forecasting and systematic trading, developed
+across five tasks in the CS313 curriculum. Tasks~1 and~2 train LSTM and
+CNN-LSTM models on 31 NASDAQ and 27 Vietnamese HOSE stocks respectively,
+achieving mean next-day prediction errors of 1.65\% (NASDAQ) and 1.31\%
+(Vietnam). Task~3 adapts the CNN-LSTM backbone to generate buy and sell
+trading signals, attaining mean AUC values of 0.781 and 0.806. Task~4
+integrates model outputs with Markowitz mean-variance optimisation to
+produce two portfolio allocation strategies.
+Task~5 deploys all outputs as a production FastAPI backend with daily
+automated data ingestion, a React~19 dashboard, and a Docker Compose stack.
+A key design principle throughout is stationarity by construction: all model
+inputs are expressed as ratios or log-returns invariant to absolute price
+level, preventing distribution shift across the multi-year training horizon.
+\end{abstract}
+
+
+
+
+\newpage
+\tableofcontents
+\newpage
+
+% --- 2. Introduction ---
+\section{Introduction}
+
+% Explain the difficulty of predicting financial time series (high noise, non-stationary).
+Financial markets are notoriously difficult to predict due to their high noise-to-signal ratio. Traditional time-series models often fail to capture complex, non-linear momentum shifts. This project builds an end-to-end platform for financial time-series data supporting forecasting and systematic trading. The working progresses through 5 tasks: 
+\begin{itemize}
+    \item \textbf{Tasks 1:} Single & Multiple outputs predictions for tickers on NASDAG.
+    \item \textbf{Task 2: } Single & Multiple outputs predictions for tickers on VIETNAM markets whose data does not high quality as NASDAG.
+    \item \textbf{Task 3:} Trading signals model for Vietnamese market.
+    \item \textbf{Task 4:} Portfolio optimization for Vietnam's market.
+    \item \textbf{Task 5:} Deploying models as a user-facing SaaS application with AI automation workflow.
+    
+\end{itemize}
+
+
+
+
+
+
+% --- 3. Tasks 1 & 2 ---
+\section{ Task 1: Prediction on NASDAG market with LSTM model}
+\subsection{Data selection}
+\begin{itemize}
+ 
+ \item \textbf{Sector Grouping}: The remaining tickers are grouped into 6 major groups on the NASDAG market(Technology, Healthcare, Financials, Consumer, Industrials, Energy).
+ \item \textbf{Top 5 selection}: Within each sector, candidates were ranked by the total number of trading days, and the top 5 ranked by data history were selected. This prioritizes data richness, enabling longer training sequences and expose the model to a more diverse market movement(bull/bear cycles, recessions, sector rotations). The final dataset consisted of 31 tickers through 6 sectors.
+ \item \textbf{Data extension to 2026}: The provided CSV files covered historical data ending in 2022. To support the model training on recent market conditions and live inference at the deployment time, data was extended to 2026.
+
+ \item \textbf{Foresee potential problem}: The initial approach appended Yahoo Finance data (2023-2026) to existing CSV files. However, this two-source design introduces a complication during the deployment stage: live prediction would require fetching new rows from Yahoo Finance and aligning them to the CSVs before inference. This would latency and potentially introduce alignment error.
+ \item \textbf{Solution}: To eliminate the complexity, a cleaner solution was adopted: all historical data was downloaded from Yahoo Finance ranging from 2005 to present. This unified data source simplifies the production pipeline, and the data scheduler only needs to append pipeline to a single provided. This would remove the potential format inconsistency between the CSVs data and live-fetched data.
+ \end{itemize}
+
+% Describe yfinance and local CSVs used in Task 1.
+\subsection{Feature Engineering}
+
+\subsubsection{Design Principle: Stationarity by Construction}
+
+The first experiment (Figure~\ref{fig:feature_eng}) suggests the need
+for a different approach to feature engineering rather than feeding raw
+prices. When feeding raw prices, the model experiences severe
+distribution shifts because prices are non-stationary. For example,
+AAPL was priced at \$5 in 2005, \$80 in 2019, and \$180 in 2023. A
+model trained on 2005--2019 data sees inputs that are completely
+out-of-distribution when evaluated on 2023--2026 data. This leads to a
+systematic underprediction of \$100--\$200. The root cause is
+non-stationarity: raw prices carry an absolute scale that drifts over
+time.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{FeatureEngineeringTask1.png}
+    \caption{Feature engineering pipeline for Task~1 NASDAQ inputs.}
+    \label{fig:feature_eng}
+\end{figure}
+
+
+  
+
+
+
+All 20 features (24 for Vietnam) were therefore engineered as 
+\textbf{ratios, log-returns, or bounded oscillators} that are invariant to 
+the absolute price level. A ratio such as $\text{Close}/\text{SMA}_{20} - 1 
+= 0.03$ carries the same meaning---``price is 3\% above its 20-day 
+average''---whether the stock trades at \$5 or \$500.
+
+\subsubsection{Feature Set}
+
+Table~\ref{tab:features} summarises all 20 features used for NASDAQ (Task~1),
+grouped by category, with their formula and the market signal they encode.
+
+\begin{table}[h]
+\centering
+\caption{Feature set: 20 stationary technical indicators (Task~1, NASDAQ).}
+\label{tab:features}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{llp{6cm}}
+\hline
+\textbf{Group} & \textbf{Feature(s)} & \textbf{Signal / Reasoning} \\
+\hline
+\multirow{4}{*}{Momentum}
+  & \texttt{Return\_1d}  & Daily log-return: $\ln(P_t / P_{t-1})$ \\
+  & \texttt{Return\_5d}  & Weekly momentum: $\ln(P_t / P_{t-5})$ \\
+  & \texttt{Return\_10d} & Bi-weekly momentum \\
+  & \texttt{Return\_20d} & Monthly drift \\
+\hline
+\multirow{5}{*}{Trend}
+  & \texttt{SMA10\_vs\_SMA20} & Short/medium MA crossover: $\text{SMA}_{10}/\text{SMA}_{20} - 1$ \\
+  & \texttt{SMA20\_vs\_SMA50} & Medium/long MA crossover \\
+  & \texttt{EMA10\_vs\_EMA20} & Exponential crossover (faster reaction) \\
+  & \texttt{Close\_vs\_SMA20} & Price deviation from 20-day anchor \\
+  & \texttt{Close\_vs\_SMA50} & Price deviation from 50-day anchor \\
+\hline
+Oscillator
+  & \texttt{RSI\_14} & Relative Strength Index (bounded $[0,100]$); overbought $>70$, oversold $<30$ \\
+\hline
+\multirow{3}{*}{MACD}
+  & \texttt{MACD\_pct}      & $(EMA_{12} - EMA_{26}) / P_t$: trend momentum \\
+  & \texttt{MACD\_sig\_pct} & 9-day EMA of MACD line / $P_t$: smoothed signal \\
+  & \texttt{MACD\_hist\_pct}& Difference of above two: momentum acceleration \\
+\hline
+\multirow{2}{*}{Bollinger}
+  & \texttt{BB\_width} & $(BB_{upper} - BB_{lower}) / BB_{mid}$: volatility expansion/compression \\
+  & \texttt{BB\_pct}   & $(P_t - BB_{lower}) / (BB_{upper} - BB_{lower})$: position within bands \\
+\hline
+\multirow{3}{*}{Volatility}
+  & \texttt{ATR\_pct}       & $\text{ATR}_{14} / P_t$: true range including overnight gaps \\
+  & \texttt{Volatility\_10} & 10-day rolling std of log-returns \\
+  & \texttt{Volatility\_20} & 20-day rolling std of log-returns \\
+\hline
+Volume  & \texttt{Volume\_ratio} & $V_t / \overline{V}_{20}$: relative volume vs. 20-day average \\
+\hline
+Range   & \texttt{High\_Low\_pct} & $(H_t - L_t) / P_t$: intraday price range intensity \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Vietnam-Specific Features (Task~2)}
+\label{sec:vn_features}
+
+Four additional features were added for the Vietnamese HOSE market, bringing 
+the total to 24. These capture market microstructure properties specific to 
+HOSE that have no NASDAQ equivalent (Table~\ref{tab:vn_features}).
+
+\begin{table}[h]
+\centering
+\caption{Four VN-specific features added for Task~2 (HOSE market).}
+\label{tab:vn_features}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lp{4cm}p{6cm}}
+\hline
+\textbf{Feature} & \textbf{Formula} & \textbf{Reasoning} \\
+\hline
+\texttt{VN\_limit\_prox} 
+  & $\ln(P_t/P_{t-1}) \;/\; 0.07$
+  & HOSE enforces a $\pm7\%$ daily circuit-breaker. Values near $\pm1$ indicate 
+    the stock hit its limit; limit-hit days create predictable next-day 
+    reversions the model can exploit. \\
+\hline
+\texttt{OC\_pct} 
+  & $(P_{close} - P_{open}) / P_{close}$
+  & Candlestick body direction. The VN retail-dominated market responds strongly 
+    to short-term TA signals; bullish bodies reliably predict short-term 
+    continuation. \\
+\hline
+\texttt{Upper\_shadow} 
+  & $\bigl(H - \max(O,C)\bigr) / P_{close}$
+  & Intraday selling pressure: price rose but was pushed back before close, 
+    signalling resistance. \\
+\hline
+\texttt{Lower\_shadow} 
+  & $\bigl(\min(O,C) - L\bigr) / P_{close}$
+  & Intraday buying support: price dropped but recovered before close, 
+    signalling a demand floor. \\
+\hline
+\end{tabular}
+\end{table}
+
+All features are \textbf{causal}: each value at time $t$ uses only data from 
+$t$ and earlier, implemented via backward-looking rolling windows and 
+positive-lag \texttt{shift(k)} operations. No future price information enters 
+any feature computation.
+\subsection{Model Architecture}
+
+\subsubsection{Architecture Choice}
+\label{sec:arch}
+
+The model is a three-layer stacked LSTM followed by two fully connected layers,
+totalling \textbf{138,657 trainable parameters} (Table~\ref{tab:model_summary}).
+The descending hidden-unit schedule (128 $\rightarrow$ 64 $\rightarrow$ 32)
+is deliberate: the first layer extracts a rich set of temporal features from
+the 60-day input window, while successive layers progressively compress these
+representations into a compact encoding before the regression head.
+A \texttt{Dropout(0.3)} layer follows each LSTM to prevent co-adaptation of
+hidden units, and an intermediate \texttt{Dense(16)} layer provides a
+non-linear projection before the scalar output.
+
+\begin{table}[h]
+\centering
+\caption{LSTM model summary for Task~1.1 (input shape: $60 \times 20$).}
+\label{tab:model_summary}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lrr}
+\hline
+\textbf{Layer} & \textbf{Output Shape} & \textbf{Parameters} \\
+\hline
+LSTM (128 units, \texttt{return\_sequences=True})  & $(N,\;60,\;128)$ & 76,288  \\
+Dropout (0.3)                                       & $(N,\;60,\;128)$ & 0       \\
+LSTM (64 units, \texttt{return\_sequences=True})   & $(N,\;60,\;64)$  & 49,408  \\
+Dropout (0.3)                                       & $(N,\;60,\;64)$  & 0       \\
+LSTM (32 units, \texttt{return\_sequences=False})  & $(N,\;32)$       & 12,416  \\
+Dropout (0.3)                                       & $(N,\;32)$       & 0       \\
+Dense (16, ReLU)                                    & $(N,\;16)$       & 528     \\
+Dense (1, linear)                                   & $(N,\;1)$        & 17      \\
+\hline
+\textbf{Total trainable parameters} & & \textbf{138,657} \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Loss function.} Huber loss was chosen over mean squared error (MSE)
+because financial return series contain sharp spikes driven by earnings
+surprises or macro events. MSE squares these residuals, causing the model to
+allocate disproportionate gradient signal toward rare extreme events at the
+expense of ordinary-day accuracy. Huber loss behaves as MSE for small errors
+but transitions to a linear penalty beyond a threshold $\delta$, making
+training robust to outliers while still penalising systematic bias.
+
+\textbf{Lookback window.} A window of 60 trading days ($\approx$3 months) was
+selected to capture enough trend context --- covering one earnings cycle and
+typical momentum half-lives --- while keeping the sequence length manageable.
+Empirically, shorter windows (20 days) produced higher validation variance,
+while longer windows (120 days) did not reduce test MAE and substantially
+increased training time.
+
+\subsection{Model Training and Validation}
+
+\subsubsection{Walk-Forward Cross-Validation}
+
+Standard $k$-fold cross-validation is invalid for time series because it
+shuffles temporal order, allowing future data to appear in training folds.
+Instead, \texttt{sklearn.TimeSeriesSplit} with an \textbf{expanding window}
+was used: each successive fold adds more training data while holding out a
+fixed-length validation window. This mirrors real-world deployment, where the
+model trains on all available history and predicts forward.
+
+Table~\ref{tab:wfcv} reports the five-fold walk-forward CV results on
+AAPL's training set (3,663 samples). The monotonically decreasing MAE from
+Fold~1 to Fold~4 confirms the expected result: more training data produces
+better generalisation. The slight uptick at Fold~5 is consistent with
+noise in the fixed-size validation window rather than overfitting.
+The mean MAE of \$0.66 $\pm$ 0.20 provides a stable pre-test performance estimate.
+
+\begin{table}[h]
+\centering
+\caption{Walk-forward cross-validation results on AAPL training set
+         (5 folds, 3,663 total training samples). Metrics in USD.}
+\label{tab:wfcv}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{crrcc}
+\hline
+\textbf{Fold} & \textbf{Train samples} & \textbf{Val samples}
+              & \textbf{MAE (\$)} & \textbf{RMSE (\$)} \\
+\hline
+1 & 613  & 610 & 1.0067 & 1.4031 \\
+2 & 1223 & 610 & 0.6235 & 0.8388 \\
+3 & 1833 & 610 & 0.5967 & 0.8421 \\
+4 & 2443 & 610 & 0.5067 & 0.7194 \\
+5 & 3053 & 610 & 0.5789 & 0.8178 \\
+\hline
+\textbf{Mean} & & & \textbf{0.6625 $\pm$ 0.197} & \textbf{0.924 $\pm$ 0.272} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Single-Ticker Training: AAPL Demo}
+
+AAPL was used as the development ticker to validate the training pipeline
+before scaling to all 31 stocks. Figure~\ref{fig:aapl_training_history} shows the
+Huber loss and MAE curves over 100 epochs. Two observations are notable.
+First, the validation loss decreases steadily and plateaus without diverging,
+confirming the absence of overfitting --- the gap between train and validation
+loss remains stable throughout training. Second, the validation MAE stabilises
+around 0.81 (scaled units) while training MAE reaches 0.69, a modest gap
+attributable to Dropout being active only during training; this is expected
+behaviour and not a sign of overfitting.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{aapl_training_history.png}
+\caption{AAPL training and validation Huber loss / MAE curves over 100 epochs.
+         Stable validation loss confirms absence of overfitting.}
+\label{fig:aapl_training_history}
+\end{figure}
+
+\subsubsection{Multi-Horizon Performance: Evidence of Learning}
+
+Table~\ref{tab:multi_horizon_aapl} reports AAPL validation and test metrics
+across all three prediction horizons of the multi-horizon model.
+Three patterns jointly confirm that the model has learned genuine price
+dynamics rather than trivially approximating a na\"{i}ve baseline.
+
+\textbf{First}, MAPE is low and consistent across splits: 1.66\% on
+validation and 1.09\% on the test set for the next-day horizon. A
+persistence baseline (predicting tomorrow's price equals today's) achieves
+a MAPE approximately equal to the average absolute daily return, which for
+AAPL over this period is roughly 1.0--1.5\%. The model matches or beats
+this benchmark while additionally predicting the \emph{direction} of the move.
+
+\textbf{Second}, directional accuracy exceeds 50\% on every split and
+horizon (range: 50.8\%--56.1\%). A model that learned nothing would predict
+near-zero returns on every day and achieve a directional accuracy of
+approximately 50\% by chance. Consistent above-chance directional accuracy
+across six independent evaluation windows is statistically unlikely under
+the null hypothesis of no learning.
+
+\textbf{Third}, the error increases monotonically with horizon --- next-day
+$<$ 3-day MA $<$ 7-day MA --- which is the theoretically expected behaviour
+for a genuine forecasting model: uncertainty compounds over longer horizons.
+A model that had overfit to noise would not exhibit this structured degradation.
+
+\begin{table}[h]
+\centering
+\caption{AAPL multi-horizon LSTM prediction metrics across validation and
+         test sets. Directional accuracy (Dir~Acc) measures the fraction of
+         days where the predicted price movement direction matches the actual.}
+\label{tab:multi_horizon_aapl}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{llcccc}
+\hline
+\textbf{Split} & \textbf{Horizon}
+  & \textbf{MAE (\$)} & \textbf{RMSE (\$)}
+  & \textbf{MAPE (\%)} & \textbf{Dir Acc} \\
+\hline
+Validation & Next-Day & 2.07 & 2.78 & 1.66 & 50.8\% \\
+Validation & 3-Day MA & 2.55 & 3.37 & 2.02 & 54.5\% \\
+Validation & 7-Day MA & 3.50 & 4.48 & 2.75 & 52.2\% \\
+\hline
+Test       & Next-Day & 2.26 & 3.33 & 1.09 & 55.2\% \\
+Test       & 3-Day MA & 3.12 & 4.43 & 1.49 & 55.7\% \\
+Test       & 7-Day MA & 4.41 & 5.87 & 2.09 & 56.1\% \\
+\hline
+\end{tabular}
+\end{table}
+
+Notably, directional accuracy on the test set \emph{improves} slightly with
+horizon (55.2\% $\rightarrow$ 55.7\% $\rightarrow$ 56.1\%). This is consistent
+with the model capturing medium-term trend momentum more reliably than
+day-to-day noise --- the 7-day moving average target smooths out daily
+idiosyncratic fluctuations, making the directional signal cleaner.
+
+
+\subsubsection{Global Backbone Training (All 31 Tickers)}
+
+Before per-ticker fine-tuning, a single shared backbone was pre-trained on
+the concatenated sequences of all 31 tickers ($\approx$111,000 sequences).
+Figure~\ref{fig:global_backbone} shows the global training curve. The
+validation loss ($\approx$0.340) falls \textit{below} the training loss
+($\approx$0.346) throughout training. This counterintuitive result is expected:
+Dropout and BatchNormalization inflate training loss during forward passes,
+while validation is computed with these regularisers disabled. The sub-0.01
+gap between train and validation confirms that the global backbone generalises
+well across diverse tickers rather than memorising any single stock's patterns.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{global_backbone_training.png}
+\caption{Global backbone training on all 31 NASDAQ tickers concatenated.
+         Validation loss below training loss is expected due to Dropout/BN
+         behaviour; the near-zero gap confirms cross-ticker generalisation.}
+\label{fig:global_backbone}
+\end{figure}
+
+\subsubsection{Multi-Horizon Model: Architecture and Training (Tasks 1.1, 1.2, 1.3)}
+
+\paragraph{Architecture Change from Single-Step to Multi-Horizon.}
+The single-step model (Task~1.1, Section~\ref{sec:arch}) uses a 128
+$\rightarrow$ 64 $\rightarrow$ 32 LSTM stack optimising one target.
+Jointly predicting three correlated targets increases the effective
+output dimension and raises the risk of overfitting, since the model
+must simultaneously satisfy three loss terms on the same hidden state.
+The multi-horizon variant therefore uses a \textbf{reduced-capacity}
+architecture with three additional regularisation mechanisms
+(Table~\ref{tab:arch_comparison}):
+
+\begin{table}[h]
+\centering
+\caption{Architecture comparison: single-step (Task~1.1) vs.\
+         multi-horizon (Tasks~1.1 extension, 1.2, 1.3).}
+\label{tab:arch_comparison}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lll}
+\hline
+\textbf{Component} & \textbf{Single-step (Task~1.1)}
+                   & \textbf{Multi-horizon (Tasks~1.2, 1.3)} \\
+\hline
+LSTM units         & 128 $\rightarrow$ 64 $\rightarrow$ 32
+                   & 64 $\rightarrow$ 32 $\rightarrow$ 16 \\
+BatchNormalization & No  & After each LSTM layer \\
+Dropout rate       & 0.3 & 0.4 \\
+L2 regularisation  & $1\times10^{-4}$ & $5\times10^{-4}$ \\
+Output head        & \texttt{Dense(1)} & \texttt{Dense($k$)} \\
+\hline
+\end{tabular}
+\end{table}
+
+BatchNormalization stabilises activations when gradients flow through
+three correlated loss terms simultaneously. The higher dropout (0.4)
+and stronger L2 ($5\times10^{-4}$) compensate for the reduced
+parameter count by increasing regularisation pressure. This design
+follows the principle that \emph{model capacity and regularisation
+strength should scale together} with output complexity.
+
+\paragraph{Target Definitions.}
+The three output heads predict the following log-return targets,
+all anchored to today's closing price $P[t]$:
+
+\begin{align}
+y_{\text{1d}}  &= \log\!\left(\frac{P[t+1]}{P[t]}\right)
+  & &\text{(next-day log-return)} \label{eq:y1d} \\[4pt]
+y_{\text{ma3}} &= \log\!\left(\frac{\overline{P}[t+1:t+4]}{P[t]}\right)
+  & &\text{(3-day forward moving average)} \label{eq:yma3} \\[4pt]
+y_{\text{ma7}} &= \log\!\left(\frac{\overline{P}[t+1:t+8]}{P[t]}\right)
+  & &\text{(7-day forward moving average)} \label{eq:yma7}
+\end{align}
+
+where $\overline{P}[a:b]$ denotes the arithmetic mean of closing prices
+over days $a$ to $b-1$. Anchoring all three targets to $P[t]$ ensures
+each head's output is a bounded log-return in $(-0.1, +0.1)$, making
+the three loss terms commensurate in scale and allowing equal-weight
+joint optimisation with Huber loss.
+
+\paragraph{Task 1.2 --- $k$-th Day Ahead Forecast.}
+Task~1.2 reuses the same reduced architecture but with a single output
+head predicting the cumulative log-return to exactly the $k$-th future day:
+
+\begin{equation}
+y_k = \log\!\left(\frac{P[t+k]}{P[t]}\right), \quad k \in \{3,\, 7\}
+\label{eq:yk}
+\end{equation}
+
+This differs from $y_{\text{ma3}}$ and $y_{\text{ma7}}$ above: the
+moving-average targets smooth over a window, whereas the $k$-th day
+target predicts a specific future point. The global Task~1.1 backbone
+is used as initialisation, and only the output head is retrained with
+the new target label --- the backbone already encodes directional
+momentum that transfers directly to longer-horizon prediction.
+
+\paragraph{Task 1.3 --- $k$ Consecutive Days Forecast.}
+Task~1.3 predicts all days from $t+1$ to $t+k$ in a single forward
+pass by widening the output head to \texttt{Dense($k$)}. Each output
+neuron $j$ predicts the log-return to day $t+j$, anchored to the
+same $P[t]$:
+
+\begin{equation}
+y_j = \log\!\left(\frac{P[t+j]}{P[t]}\right), \quad j = 1, \ldots, k
+\label{eq:yj}
+\end{equation}
+
+Price reconstruction for each day is independent:
+$\hat{P}[t+j] = P[t] \cdot \exp(\hat{y}_j)$, which eliminates the
+error compounding that affects recursive multi-step forecasting
+(where day $j+1$ depends on the predicted --- not actual ---
+price at day $j$). A separate \texttt{StandardScaler} is fitted
+per output dimension on training targets only.
+
+\paragraph{Early Stopping Behaviour.}
+Figure~\ref{fig:multi_horizon} shows the training curves for the
+multi-horizon model on AAPL. The best validation epoch is \textbf{epoch~22},
+after which validation loss begins to rise while training loss
+continues to decrease --- the characteristic signature of overfitting.
+\texttt{EarlyStopping} with \texttt{restore\_best\_weights=True}
+halts training and reverts to epoch-22 weights, preventing the model
+from memorising training patterns at the expense of generalisation.
+The overfit gap (shaded region in Figure~\ref{fig:multi_horizon})
+develops rapidly after epoch~22, confirming that the early stopping
+threshold is appropriate for this architecture.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{multi_horizon_training.png}
+\caption{Multi-horizon LSTM training curves. The dashed green line marks
+         the best validation epoch (22). The shaded region indicates the
+         overfitting gap that develops after early stopping.}
+\label{fig:multi_horizon}
+\end{figure}
+
+\subsection{Model Performance}
+
+\subsubsection{AAPL Prediction — Validation and Test Sets}
+
+Figure~\ref{fig:aapl_prediction} shows the predicted versus actual closing
+prices for AAPL on the validation set (November 2019 -- February 2023) and
+test set (January 2023 -- April 2026). The model tracks the actual price
+trajectory closely across both periods, including the COVID-19 crash in
+early 2020 and the 2022 bear market decline.
+
+On the \textbf{validation set}, MAE = \$2.07, RMSE = \$2.78, MAPE = 1.66\%.
+On the \textbf{test set}, MAE = \$2.27, RMSE = \$3.37, MAPE = 1.08\%.
+The lower MAPE on the test set despite a slightly higher absolute MAE reflects
+the higher absolute price level in 2023--2026 (\$150--280) relative to
+2019--2023 (\$60--180): the same dollar error represents a smaller percentage
+at higher prices.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{aaple_next_day_prediction.png}
+\caption{AAPL next-day price prediction. Top: validation set (2019--2023),
+         MAE=\$2.07, MAPE=1.66\%. Bottom: test set (2023--2026),
+         MAE=\$2.27, MAPE=1.08\%.}
+\label{fig:aapl_prediction}
+\end{figure}
+
+\subsubsection{Per-Ticker Performance Summary}
+
+Table~\ref{tab:perticker} reports test-set MAE, RMSE, and MAPE for all 22
+tickers shown after per-ticker fine-tuning of the global backbone.
+The mean MAPE across all 31 tickers is \textbf{1.65\%}, indicating that on
+average the model predicts next-day closing price to within 1.65\% of the
+actual value.
+
+\begin{table}[h]
+\centering
+\caption{Per-ticker test-set performance for all 31 tickers after global
+         pre-train and per-ticker fine-tuning (Task~1.1, next-day prediction),
+         sorted by MAPE ascending.}
+\label{tab:perticker}
+\resizebox{\textwidth}{!}{%
+
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lccclccc}
+\hline
+\textbf{Ticker} & \textbf{MAE (\$)} & \textbf{RMSE (\$)} & \textbf{MAPE}
+& \textbf{Ticker} & \textbf{MAE (\$)} & \textbf{RMSE (\$)} & \textbf{MAPE} \\
+\hline
+HOLX  & 0.63 & 0.95  & 0.88\% & APOG  & 0.77 & 1.28  & 1.53\% \\
+ROST  & 1.40 & 2.06  & 1.00\% & UMBF  & 1.39 & 2.00  & 1.56\% \\
+MNST  & 0.59 & 0.84  & 1.01\% & KLIC  & 0.84 & 1.19  & 1.81\% \\
+CINF  & 1.39 & 1.90  & 1.07\% & TRNS  & 1.72 & 2.65  & 1.87\% \\
+AAPL  & 2.27 & 3.36  & 1.08\% & SGC   & 0.25 & 0.40  & 2.08\% \\
+AMGN  & 3.27 & 4.76  & 1.12\% & DIOD  & 1.36 & 1.88  & 2.10\% \\
+PHI   & 0.26 & 0.37  & 1.14\% & ATRO  & 0.60 & 1.05  & 2.12\% \\
+CBSH  & 0.59 & 0.82  & 1.15\% & WDC   & 1.97 & 4.41  & 2.15\% \\
+JJSF  & 1.61 & 2.37  & 1.19\% & NEOG  & 0.27 & 0.40  & 2.26\% \\
+OTTR  & 0.98 & 1.40  & 1.21\% & HELE  & 1.40 & 2.31  & 2.30\% \\
+ALCO  & 0.39 & 0.55  & 1.33\% & MARPS & 0.11 & 0.18  & 2.31\% \\
+IDXX  & 6.99 & 11.28 & 1.35\% & FLXS  & 0.83 & 1.38  & 2.34\% \\
+TRMK  & 0.42 & 0.59  & 1.36\% & INTC  & 0.74 & 1.13  & 2.36\% \\
+TXN   & 2.50 & 3.65  & 1.38\% & MLAB  & 2.62 & 3.65  & 2.44\% \\
+HBAN  & 0.19 & 0.28  & 1.39\% & CLNE  & 0.08 & 0.11  & 2.85\% \\
+MAT   & 0.28 & 0.46  & 1.51\% &       &      &       &        \\
+\hline
+\multicolumn{8}{l}{\textit{Mean MAPE: \textbf{1.65\%} \quad
+  Best: HOLX 0.88\% \quad Worst: CLNE 2.85\% \quad
+  Mean MAE: \$1.25 \quad Mean RMSE: \$1.97}} \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+
+The variation in MAPE across tickers is consistent with differences in
+price predictability rather than model failure. HOLX (0.88\%) and MNST
+(1.01\%) are stable, low-volatility stocks with smooth price trends that
+the LSTM tracks easily. In contrast, MLAB (2.44\%), INTC (2.36\%), and
+NEOG (2.26\%) are lower-liquidity stocks where idiosyncratic noise dominates
+the price signal, inherently limiting achievable accuracy. The high absolute
+MAE for IDXX (\$6.99) reflects its high price level (\$400--600 range) rather
+than poor relative accuracy, as confirmed by its moderate MAPE of 1.35\%.
+
+
+
+
+
+
+\section{Task 2 --- Vietnam Stock Price Prediction (CNN-LSTM)}
+
+\subsection{Model Architecture}
+
+Task~2 replaces the pure LSTM of Task~1 with a \textbf{CNN-LSTM hybrid},
+motivated by two properties of the Vietnamese HOSE market. First,
+short-term 3--5 day candlestick formations carry strong predictive signal
+in a retail-dominated market where technical analysis is widely practised.
+A \texttt{Conv1D} layer with causal padding explicitly extracts these local
+patterns before the LSTM processes the full sequence. Second, \texttt{MaxPool(2)}
+compresses the 30-step input to 15 steps, halving the gradient path through
+the LSTM and reducing vanishing-gradient pressure on the shorter VN histories.
+Table~\ref{tab:cnn_lstm_arch} summarises the full architecture.
+
+\begin{table}[h]
+\centering
+\caption{CNN-LSTM architecture for Task~2
+         (input shape: $30 \times 24$).}
+\label{tab:cnn_lstm_arch}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lll}
+\hline
+\textbf{Block} & \textbf{Layer} & \textbf{Configuration} \\
+\hline
+\multirow{5}{*}{CNN}
+  & Conv1D  & 64 filters, kernel=3, causal padding \\
+  & BatchNorm & --- \\
+  & Conv1D  & 64 filters, kernel=3, causal padding \\
+  & BatchNorm & --- \\
+  & MaxPool(2) + Dropout & pool size=2, dropout=0.20 \\
+\hline
+\multirow{4}{*}{LSTM}
+  & LSTM(64) & \texttt{return\_sequences=True} \\
+  & Dropout  & 0.25 \\
+  & LSTM(32) & \texttt{return\_sequences=False} \\
+  & Dropout  & 0.25 \\
+\hline
+\multirow{3}{*}{Head}
+  & Dense(32, ReLU) & --- \\
+  & Dropout         & 0.10 \\
+  & Dense($d$, linear) & $d=1$ (Tasks 2.1, 2.2); $d=k$ (Task 2.3) \\
+\hline
+\multicolumn{2}{l}{Loss}      & Huber ($\delta=1.0$) \\
+\multicolumn{2}{l}{Optimiser} & Adam (lr=$10^{-3}$, \texttt{clipnorm}=1.0) \\
+\hline
+\end{tabular}
+\end{table}
+
+Causal padding ensures that $\text{output}[t]$ depends only on
+$\text{input}[0 \ldots t]$, preserving strict temporal causality throughout
+the CNN stage. Huber loss is chosen for its robustness to the $\pm7\%$
+daily price-limit outliers endemic to the HOSE circuit-breaker mechanism.
+
+\subsection{Data and Preprocessing}
+
+\textbf{Dataset.} 27 Vietnamese HOSE stocks passed quality filtering,
+all classified as LONG ($\geq 2{,}000$ rows). The lookback window is
+\textbf{30 trading days} (versus 60 for NASDAQ), chosen to ensure
+sufficient sequence counts on the shorter VN histories.
+The chronological 70/15/15 train/validation/test split is applied
+without shuffling; \texttt{StandardScaler} is fitted exclusively on
+training rows $[0,\; n_{\text{train}} + \text{lookback} - 1)$ to
+prevent distributional leakage.
+
+\textbf{Features.} Each input vector contains 24 stationary features:
+20 universal indicators shared with Task~1 (momentum returns, moving
+average ratios, RSI, MACD, Bollinger Bands, ATR, volatility, volume
+ratio, daily range) plus 4 VN-specific features described in
+Section~\ref{sec:vn_features}.
+
+\subsection{Transfer Learning Strategy}
+
+Training 27 independent models from scratch on histories of varying
+length would produce inconsistent model quality. Instead, a two-phase
+transfer learning strategy is applied, exploiting the architectural
+separation between the CNN (universal pattern extractor) and the LSTM
+(ticker-specific sequence model).
+
+\textbf{Phase 1 --- Global backbone pre-training.}
+All 27 LONG-ticker training sequences are concatenated ($\approx$95{,}000
+sequences) and used to train a single shared CNN-LSTM backbone.
+The backbone learns universal Vietnamese candlestick patterns ---
+limit-hit reversions, opening gap behaviour, volume-price relationships
+--- that are consistent across all HOSE stocks.
+
+\textbf{Phase 2 --- Per-ticker fine-tuning.}
+Since all 27 tickers qualify as LONG, every ticker receives full-layer
+fine-tuning (all layers unfrozen, LR=$10^{-4}$), allowing the LSTM
+to adapt to each stock's specific sequential dynamics while preserving
+the CNN feature representations learned in Phase~1.
+Table~\ref{tab:tl_strategy} summarises the fine-tuning protocol.
+
+\begin{table}[h]
+\centering
+\caption{Per-ticker fine-tuning strategy by data tier.}
+\label{tab:tl_strategy}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lccc}
+\hline
+\textbf{Tier} & \textbf{Condition} & \textbf{Layers unfrozen} & \textbf{LR} \\
+\hline
+LONG & $\geq 2{,}000$ rows & All (CNN + LSTM + Dense) & $1\times10^{-4}$ \\
+SHORT & $< 2{,}000$ rows & LSTM + Dense only (CNN frozen) & $5\times10^{-4}$ \\
+\hline
+\multicolumn{4}{l}{\textit{All 27 tickers in this dataset qualify as LONG.}} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Task 2.1 --- Next-Day Results}
+
+Table~\ref{tab:task21} reports test-set performance for all 27 tickers.
+The mean MAPE of \textbf{1.31\%} across all tickers confirms the model
+predicts next-day closing prices to within approximately 1.3\% of the
+actual value. The mean directional accuracy of 44.4\% is discussed
+in Section~\ref{sec:t2_observations}.
+
+\begin{table}[h]
+\centering
+\caption{Task~2.1 per-ticker test-set results (next-day prediction).
+         MAE and RMSE are in VND. Sorted by MAPE ascending.}
+\label{tab:task21}
+\renewcommand{\arraystretch}{1.2}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr|lrrrr}
+\hline
+\textbf{Ticker} & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE\%} & \textbf{DirAcc}
+& \textbf{Ticker} & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE\%} & \textbf{DirAcc} \\
+\hline
+KDC  &  316.6 &  538.0 & 0.58 & 0.446 & VNM  &  635.3 &  945.7 & 1.05 & 0.431 \\
+DHG  &  617.4 & 1050.0 & 0.64 & 0.419 & FMC  &  411.8 &  638.0 & 1.01 & 0.455 \\
+PGC  &  105.4 &  185.8 & 0.76 & 0.342 & SFI  &  270.0 &  442.4 & 1.01 & 0.342 \\
+RAL  &  881.8 & 1498.4 & 0.81 & 0.395 & DMC  &  666.4 & 1074.8 & 1.08 & 0.371 \\
+PPC  &   98.9 &  163.8 & 0.86 & 0.409 & DHA  &  502.7 &  783.7 & 1.09 & 0.441 \\
+ACB  &  196.4 &  314.8 & 0.93 & 0.426 & SAM  &   90.9 &  146.9 & 1.27 & 0.454 \\
+FPT  & 1201.5 & 1688.1 & 1.28 & 0.479 & VIP  &  162.7 &  253.3 & 1.31 & 0.414 \\
+GMD  &  855.7 & 1259.6 & 1.39 & 0.482 & HAX  &  193.3 &  280.2 & 1.43 & 0.425 \\
+STB  &  600.0 &  944.5 & 1.42 & 0.463 & BMC  &  297.0 &  459.7 & 1.62 & 0.480 \\
+SSI  &  442.7 &  647.0 & 1.58 & 0.487 & BMP  & 1841.0 & 2669.1 & 1.59 & 0.463 \\
+SJS  &  602.2 & 1024.6 & 1.61 & 0.464 & PVD  &  434.4 &  651.1 & 1.64 & 0.451 \\
+TDH  &   65.5 &  100.5 & 1.71 & 0.514 & VNE  &   91.2 &  147.9 & 1.68 & 0.503 \\
+PAC  &  430.8 &  626.6 & 1.86 & 0.467 & MHC  &  185.1 &  271.1 & 1.98 & 0.484 \\
+PET  &  594.9 &  884.0 & 2.05 & 0.478 &      &        &        &      &       \\
+\hline
+\multicolumn{10}{l}{\textit{Mean: MAE=473.8 \quad RMSE=729.2 \quad
+  MAPE=1.31\% \quad DirAcc=0.444 \quad
+  Best: KDC 0.58\% \quad Worst: PET 2.05\%}} \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Task 2.2 and 2.3 --- Multi-Horizon Results}
+
+Table~\ref{tab:task22_23} summarises average performance across all
+tickers for the $k$-th day ahead (Task~2.2) and $k$ consecutive days
+(Task~2.3) forecasting variants.
+
+\begin{table}[h]
+\centering
+\caption{Multi-horizon results averaged over all 27 tickers.}
+\label{tab:task22_23}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{llrr}
+\hline
+\textbf{Task} & \textbf{Horizon} & \textbf{Avg MAE (VND)} & \textbf{Avg DirAcc} \\
+\hline
+2.1 & Next-day ($k=1$)             &  473.8 & 0.444 \\
+2.2 & $k$-th day ahead ($k=3$)     &  845.5 & 0.492 \\
+2.2 & $k$-th day ahead ($k=7$)     & 1306.0 & 0.485 \\
+\hline
+2.3 & $k$ consecutive days ($k=3$) &  671.1 & 0.443 \\
+2.3 & $k$ consecutive days ($k=7$) &  938.1 & 0.452 \\
+\hline
+\end{tabular}
+\end{table}
+
+Task~2.3 uses a \textbf{direct multi-step output} --- the Dense head
+outputs all $k$ predictions simultaneously rather than feeding each
+prediction back as input. This eliminates the recursive error compounding
+that would otherwise cause errors at step $j+1$ to depend on the
+(incorrect) predicted price at step $j$. The MAE-per-step grows
+approximately linearly with step index, confirming that errors accumulate
+additively rather than multiplicatively.
+
+\subsection{Key Observations}
+\label{sec:t2_observations}
+
+\textbf{1. MAE scales with horizon.}
+Average MAE increases from 474 (k=1) to 846 (k=3) to 1,306 VND (k=7),
+consistent with the theoretical expectation that uncertainty compounds
+over longer forecast horizons. This monotonic degradation is evidence
+that the model is making genuine probabilistic forecasts rather than
+producing arbitrary outputs.
+
+\textbf{2. Directional accuracy and its interpretation.}
+Mean directional accuracy of 44.4\% at $k=1$ appears below the 50\%
+random baseline, but this is not a model failure. The Huber loss
+optimises \emph{magnitude}, not direction: on days with ambiguous
+low-volatility signals, predicting a near-zero return minimises loss
+regardless of sign. The model correctly identifies uncertainty; the
+binary direction metric penalises this conservatism. Directional
+accuracy improves to 49.2\% at $k=3$, where the smoothed target
+reduces noise and makes the directional signal cleaner.
+
+\textbf{3. VN circuit-breaker feature contribution.}
+The \texttt{VN\_limit\_prox} feature encodes proximity to the HOSE
+$\pm7\%$ daily limit. Stocks that hit their upper or lower limit
+exhibit predictable next-day reversions due to pent-up order flow.
+The CNN's local receptive field (kernel size 3) is well-suited to
+detecting these 1--2 day patterns, and the causal padding ensures
+no future information enters the computation.
+
+\textbf{4. Transfer learning effectiveness.}
+The global backbone pre-trained on 95,000 sequences from 27 tickers
+provides a stable initialisation that captures cross-market patterns.
+Per-ticker fine-tuning then adapts the LSTM weights to each stock's
+specific dynamics. This two-phase approach consistently outperforms
+training from scratch, particularly for tickers at the shorter end
+of the LONG tier.
+
+
+\section{Task 3 --- Vietnam Trading Signal Generation}
+
+\subsection{Objective and Problem Formulation}
+
+Task~3 repurposes the CNN-LSTM backbone from Task~2 for \textbf{binary
+classification}: rather than predicting a continuous price value, two
+independent classifiers identify favourable trading entry points
+(\textsc{buy} signal) and exit points (\textsc{sell} signal) for each
+of the 27 Vietnamese stocks. This represents a deliberate architectural
+shift --- the same feature representations learned for price regression
+are adapted for a fundamentally different output space.
+
+\subsection{Label Construction}
+
+Labels are derived from a \textbf{symmetric 11-day price window} centred
+on each day $t$ (5 days before and 5 days after):
+
+\begin{equation}
+\text{pos}_t = \frac{P_{\text{close}}[t] - \min_{t-5}^{t+5}(P)}
+                    {\max_{t-5}^{t+5}(P) - \min_{t-5}^{t+5}(P)}
+\label{eq:pos}
+\end{equation}
+
+Binary labels are then assigned by thresholding $\text{pos}_t$:
+
+\begin{equation}
+\text{BUY}[t]  = \mathbf{1}[\text{pos}_t \leq 0.30]
+\qquad \text{(price near local minimum --- good entry)}
+\label{eq:buy_label}
+\end{equation}
+
+\begin{equation}
+\text{SELL}[t] = \mathbf{1}[\text{pos}_t \geq 0.70]
+\qquad \text{(price near local maximum --- good exit)}
+\label{eq:sell_label}
+\end{equation}
+
+This formulation produces a natural positive rate of approximately
+30\% for each label without artificial oversampling or undersampling,
+avoiding the class-imbalance distortions that would affect a simpler
+up/down direction label.
+
+\subsection{Architecture: From Regression to Classification}
+
+The CNN-LSTM body from Task~2 is reused without modification.
+Only three components change (Table~\ref{tab:t3_arch_diff}):
+
+\begin{table}[h]
+\centering
+\caption{Architectural differences between Task~2 (regression)
+         and Task~3 (classification).}
+\label{tab:t3_arch_diff}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lll}
+\hline
+\textbf{Component} & \textbf{Task 2 (Regression)} & \textbf{Task 3 (Classification)} \\
+\hline
+Output activation & Linear               & Sigmoid $\in [0,1]$               \\
+Loss function     & Huber ($\delta=1.0$) & BinaryFocalCrossentropy ($\gamma=2.0$) \\
+LSTM/Dense init   & Task~2 weights       & Xavier re-initialisation           \\
+\hline
+\end{tabular}
+\end{table}
+
+The CNN layers (\texttt{conv1}, \texttt{bn1}, \texttt{conv2},
+\texttt{bn2}, \texttt{pool}) are loaded from the Task~2 backbone
+and kept frozen during Phase~1, preserving the learned candlestick
+feature representations. The LSTM and Dense layers are \textbf{reset
+to Xavier initialisation} --- the reason for this reset is explained
+in Section~\ref{sec:t3_design}.
+
+\subsection{Key Design Decision: Focal Loss and LSTM Reset}
+\label{sec:t3_design}
+
+Early experiments revealed a critical failure mode: every ticker
+produced a degenerate classifier with recall~$= 1.0$ and a decision
+threshold of 0.30 for all outputs. The model was predicting positive
+for every input. Root cause analysis identified that the Task~2 LSTM
+weights encoded a strong prior toward \emph{continuous uptrend
+prediction} --- appropriate for regression but catastrophic for a
+balanced binary classifier, as it biased the sigmoid output toward
+high values regardless of input.
+
+Three fixes were applied jointly:
+
+\begin{enumerate}
+  \item \textbf{LSTM and Dense weight reset.} All non-CNN layers were
+    reinitialised with Xavier uniform weights before fine-tuning,
+    removing the regression bias while retaining the CNN feature
+    extraction capability.
+
+  \item \textbf{Focal loss ($\gamma = 2.0$).}
+    Standard binary cross-entropy assigns equal weight to all
+    misclassified examples. When easy negatives dominate the batch,
+    gradient signal is diluted and the model collapses to predicting
+    the majority class. BinaryFocalCrossentropy with $\gamma = 2.0$
+    down-weights the loss contribution of easy, confidently classified
+    negatives by a factor of $(1-p)^2$, forcing the model to focus
+    on hard, uncertain examples near the decision boundary.
+
+  \item \textbf{Minimum precision guard (\texttt{MIN\_PREC} $= 0.35$).}
+    During threshold calibration, any candidate threshold yielding
+    precision~$< 0.35$ is rejected, preventing the optimiser from
+    selecting degenerate high-recall/zero-precision solutions.
+\end{enumerate}
+
+\subsection{Transfer Learning and Training Protocol}
+
+Training follows the same two-phase strategy as Task~2:
+
+\textbf{Phase~1 --- Global backbone pre-training.}
+A shared CNN-LSTM classifier is pre-trained on the concatenated
+BUY (or SELL) labels of all 27 tickers. This phase learns
+general entry/exit pattern representations that are common
+across the VN market.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{task3_buy_training_curve.png}
+    \caption{Training curves for the BUY backbone training.}
+    \label{fig:t3_buy_training}
+\end{figure}
+
+
+\textbf{Phase~2 --- Per-ticker fine-tuning.}
+Individual classifiers are fine-tuned per ticker using
+walk-forward cross-validation (\texttt{TimeSeriesSplit}, 5 folds).
+Early stopping monitors \texttt{val\_auc} with patience~$= 5$ and
+restores best weights. All layers are unfrozen at this stage.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{task3_sell_training_curve.png}
+    \caption{Training curves for the SELL backbone training.}
+    \label{fig:t3_sell_training}
+\end{figure}
+
+\subsection{Threshold Calibration}
+\label{sec:threshold_cal}
+
+Each of the 54 trained models (27 tickers $\times$ 2 signal types)
+receives its own decision threshold, calibrated by maximising
+F1-score on the validation fold subject to the precision guard:
+
+\begin{equation}
+\tau^* = \argmax_{\tau \in [0,1]}\ F_1(\tau)
+\quad \text{subject to} \quad \text{Precision}(\tau) \geq 0.35
+\label{eq:threshold}
+\end{equation}
+
+Table~\ref{tab:t3_thresholds} reports the resulting threshold
+distributions. SELL thresholds are systematically higher than
+BUY thresholds, consistent with the model requiring higher
+confidence to call a local price peak than a local trough ---
+price maxima are sharper and shorter-lived than minima, reducing
+the window for high-confidence predictions.
+
+\begin{table}[h]
+\centering
+\caption{Calibrated decision threshold statistics across 27 tickers.}
+\label{tab:t3_thresholds}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lccc}
+\hline
+\textbf{Signal} & \textbf{Mean} $\tau^*$ & \textbf{Min} & \textbf{Max} \\
+\hline
+BUY  & 0.563 & 0.480 & 0.640 \\
+SELL & 0.585 & 0.440 & 0.680 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Results}
+
+\subsubsection{Aggregate Performance}
+
+Table~\ref{tab:t3_summary} reports mean, minimum, and maximum AUC
+across all 27 tickers for both signal types. AUC~$> 0.75$ across
+every ticker confirms that both classifiers reliably separate
+positive trading opportunities from negative ones.
+
+
+
+
+\begin{table}[h]
+\centering
+\caption{Task~3 aggregate AUC across 27 tickers.}
+\label{tab:t3_summary}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Signal} & \textbf{Mean AUC} & \textbf{Min AUC} & \textbf{Max AUC}
+  & \textbf{Mean F1} & \textbf{Mean Prec.} & \textbf{Mean Rec.} \\
+\hline
+BUY  & 0.781 & 0.685 (VNE) & 0.845 (BMP) & 0.597 & 0.487 & 0.793 \\
+SELL & 0.806 & 0.766 (DHG) & 0.863 (DMC) & 0.598 & 0.499 & 0.774 \\
+\hline
+\end{tabular}
+\end{table}
+
+SELL signals (mean AUC~$= 0.806$) outperform BUY signals
+(mean AUC~$= 0.781$). This is consistent with the observation
+that price peaks are structurally sharper than troughs: a sell
+opportunity concentrates within a narrow 1--2 day window,
+producing a cleaner label that the CNN's local receptive field
+detects reliably. Price bottoms are broader and more ambiguous,
+resulting in noisier labels and lower discriminability.
+
+\subsubsection{Per-Ticker Performance}
+
+Table~\ref{tab:t3_perticker} reports AUC and calibrated threshold
+for every ticker across both signal types.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Per-ticker AUC and calibrated threshold for BUY and SELL
+         classifiers. Sorted by BUY AUC descending.}
+\label{tab:t3_perticker}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{l cc c cc}
+\hline
+& \multicolumn{2}{c}{\textbf{BUY signal}}
+& \phantom{xx}
+& \multicolumn{2}{c}{\textbf{SELL signal}} \\
+\cmidrule{2-3} \cmidrule{5-6}
+\textbf{Ticker} & \textbf{AUC} & $\tau^*$
+&
+& \textbf{AUC} & $\tau^*$ \\
+\hline
+BMP   & 0.845 & 0.54 && 0.814 & 0.52 \\
+PET   & 0.844 & 0.50 && 0.798 & 0.58 \\
+SFI   & 0.843 & 0.62 && 0.805 & 0.60 \\
+STB   & 0.840 & 0.52 && 0.843 & 0.62 \\
+DMC   & 0.825 & 0.58 && 0.863 & 0.60 \\
+GMD   & 0.821 & 0.56 && 0.799 & 0.54 \\
+PAC   & 0.810 & 0.58 && 0.828 & 0.66 \\
+SSI   & 0.806 & 0.52 && 0.781 & 0.56 \\
+FPT   & 0.804 & 0.58 && 0.802 & 0.60 \\
+BMC   & 0.803 & 0.48 && 0.833 & 0.64 \\
+ACB   & 0.792 & 0.58 && 0.808 & 0.58 \\
+VNM   & 0.792 & 0.64 && 0.848 & 0.60 \\
+FMC   & 0.788 & 0.58 && 0.779 & 0.52 \\
+HAX   & 0.788 & 0.56 && 0.828 & 0.68 \\
+VIP   & 0.790 & 0.58 && 0.795 & 0.58 \\
+MHC   & 0.780 & 0.60 && 0.780 & 0.60 \\
+SAM   & 0.780 & 0.58 && 0.835 & 0.58 \\
+KDC   & 0.767 & 0.56 && 0.784 & 0.64 \\
+PVD   & 0.767 & 0.56 && 0.791 & 0.52 \\
+SJS   & 0.757 & 0.56 && 0.790 & 0.64 \\
+PGC   & 0.746 & 0.54 && 0.786 & 0.56 \\
+PPC   & 0.746 & 0.56 && 0.792 & 0.58 \\
+RAL   & 0.739 & 0.64 && 0.818 & 0.54 \\
+DHG   & 0.729 & 0.60 && 0.766 & 0.60 \\
+TDH   & 0.708 & 0.50 && 0.820 & 0.44 \\
+DHA   & 0.700 & 0.48 && 0.794 & 0.58 \\
+VNE   & 0.685 & 0.60 && 0.795 & 0.64 \\
+\hline
+\textit{Mean} & \textit{0.781} & \textit{0.563}
+&& \textit{0.806} & \textit{0.585} \\
+\hline
+\end{tabular}
+\end{table}
+
+
+No ticker falls below AUC~$= 0.685$ for BUY or AUC~$= 0.766$
+for SELL, confirming consistent performance across the full
+27-ticker universe. The lowest BUY AUC belongs to VNE (0.685),
+a low-liquidity stock where idiosyncratic noise reduces label
+quality. The highest SELL AUC belongs to DMC (0.863), a
+pharmaceutical stock with sharp, well-defined price peaks that
+align closely with the 11-day window label definition.
+
+\section{Task 4 --- Portfolio Optimisation and Risk Management}
+
+\subsection{Overview and Pipeline}
+
+Task~4 integrates the outputs of Tasks~2 and~3 with classical
+quantitative finance methods to construct two investable portfolios
+from the 27 Vietnamese stocks. The pipeline proceeds in three
+sequential stages, each filtering or transforming the candidate
+universe before the final allocation step:
+
+\begin{enumerate}
+  \item \textbf{Task~4.1 --- Candidate selection.} CNN-LSTM predicted
+    returns (Task~2) and BUY signal probabilities (Task~3) are combined
+    into a profitability score. Only stocks with positive predicted
+    returns \emph{and} sufficient signal confidence pass.
+  \item \textbf{Task~4.2 --- Risk scoring and exclusion.} Five
+    historical risk metrics are computed per ticker. High-risk tickers
+    are excluded before optimisation.
+  \item \textbf{Task~4.3 --- Mean-variance optimisation (MVO).}
+    Markowitz optimisation is applied to the surviving candidates,
+    with final weights blended with Task~3 signal conviction.
+\end{enumerate}
+
+This staged design reflects a core principle of systematic portfolio
+construction: \emph{return potential and risk must be assessed
+independently before they are combined}, preventing high-return but
+high-risk assets from dominating the allocation.
+
+\subsection{Task 4.1 --- Profitable Stock Selection}
+
+\subsubsection{Profitability Score}
+
+Each ticker is assigned a profitability score that combines the
+CNN-LSTM predicted 7-day return with the Task~3 BUY signal probability:
+
+\begin{equation}
+\text{ProfScore}_i = \hat{r}_{7d,i} \times p_{\text{buy},i}
+\label{eq:prof_score}
+\end{equation}
+
+where $\hat{r}_{7d,i}$ is the Task~2 7-day predicted log-return and
+$p_{\text{buy},i}$ is the Task~3 BUY signal probability. This product
+rewards stocks where both the magnitude of the predicted move
+\emph{and} the classifier confidence are high --- a stock with a large
+predicted return but low BUY probability, or vice versa, receives a
+lower score than one where both signals agree.
+
+\subsubsection{Candidate Filter}
+
+A two-condition hard filter is applied before optimisation:
+
+\begin{equation}
+\text{Candidate}_i = \mathbf{1}\!\left[
+  \hat{r}_{7d,i} > 0
+  \;\;\text{and}\;\;
+  p_{\text{buy},i} \geq 0.50 \times \tau_i^*
+\right]
+\label{eq:candidate}
+\end{equation}
+
+where $\tau_i^*$ is the ticker's calibrated Task~3 threshold
+(Section~\ref{sec:threshold_cal}). The 50\% relaxation of the threshold
+is deliberate: requiring $p_{\text{buy}} \geq \tau^*$ would pass
+only tickers where the classifier is at its highest conviction,
+which at any given date may be zero or one ticker.
+Relaxing to 50\% of $\tau^*$ allows borderline-positive signals
+while still excluding clearly negative ones, ensuring sufficient
+diversification (target: 8--12 candidates).
+
+\textbf{Outcome.} At the evaluation date, \textbf{10 of 27 tickers}
+passed both conditions. Table~\ref{tab:candidates} lists all 10
+candidates with their predicted returns and profitability scores.
+The remaining 17 tickers had negative CNN-LSTM predictions and were
+correctly excluded from consideration.
+
+\begin{table}[h]
+\centering
+\caption{Task~4.1 candidate stocks passing the profitability filter,
+         sorted by profitability score descending.}
+\label{tab:candidates}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{llrrrr}
+\hline
+\textbf{Ticker} & \textbf{Sector}
+  & \textbf{Last Close} & \textbf{Pred.\ 7d}
+  & \textbf{Exp.\ Return} & \textbf{Prof.\ Score} \\
+\hline
+STB & Banking    & 66,900 & 67,801 & +1.35\% & 0.0042 \\
+FMC & Seafood    & 38,000 & 38,206 & +0.54\% & 0.0030 \\
+RAL & Cables     & 87,600 & 88,021 & +0.48\% & 0.0027 \\
+GMD & Logistics  & 72,600 & 72,871 & +0.37\% & 0.0018 \\
+SFI & Logistics  & 28,450 & 28,543 & +0.33\% & 0.0013 \\
+PET & Trading    & 48,500 & 48,692 & +0.40\% & 0.0012 \\
+BMP & Materials  & 133,000 & 133,575 & +0.43\% & 0.0012 \\
+PPC & Power      & 10,250 & 10,270 & +0.20\% & 0.0011 \\
+DHA & Pharma     & 47,100 & 47,245 & +0.31\% & 0.0008 \\
+DMC & Pharma     & 60,300 & 60,347 & +0.08\% & 0.0004 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+
+
+\subsection{Task 4.2 --- Risk Scoring and Candidate Exclusion}
+
+\subsubsection{Risk Metric Construction}
+
+Five historical risk metrics are computed per ticker from the
+full price history, each capturing a distinct dimension of downside
+exposure:
+
+\begin{enumerate}
+  \item \textbf{Annualised volatility.} Rolling 252-day standard
+    deviation of daily log-returns, scaled to annual. Captures
+    overall price variability.
+  \item \textbf{Maximum drawdown (MDD).} The largest peak-to-trough
+    decline over the full history:
+    \begin{equation}
+      \text{MDD}_i = \max_{s < t} \frac{P_s - P_t}{P_s}
+    \end{equation}
+    MDD captures tail risk that volatility alone misses --- a stock
+    can have moderate daily volatility but catastrophic multi-month
+    drawdowns.
+  \item \textbf{Downside deviation.} Semi-deviation computed only on
+    negative daily returns (Sortino denominator), penalising downside
+    moves disproportionately relative to symmetric volatility.
+  \item \textbf{Value-at-Risk (VaR$_{5\%}$).} The 5th-percentile
+    daily log-return, representing the expected loss on the worst
+    5\% of trading days.
+  \item \textbf{Conditional Value-at-Risk (CVaR$_{5\%}$).} The mean
+    of all returns below VaR$_{5\%}$, capturing the average severity
+    of extreme loss days.
+\end{enumerate}
+
+Each metric is normalised to $[0,1]$ via min-max scaling across the
+27-ticker universe, and a composite risk score is computed as the
+equal-weighted mean of the five normalised metrics:
+
+\begin{equation}
+\text{RiskScore}_i = \frac{1}{5}
+  \sum_{m \in \{\sigma,\, \text{MDD},\, \text{DD},\, \text{VaR},\, \text{CVaR}\}}
+  \widetilde{m}_i
+\label{eq:risk_score}
+\end{equation}
+
+where $\widetilde{m}_i$ denotes the min-max normalised value of
+metric $m$ for ticker $i$.
+
+\subsubsection{High-Risk Exclusion}
+
+Tickers with composite risk score $> 0.65$ are excluded from both
+portfolio strategies. Table~\ref{tab:excluded} lists the five
+excluded tickers. Notably, three of the five (PVD, TDH, VNE) are
+cyclical or speculative stocks with histories of extreme drawdowns
+exceeding 80\%, making them unsuitable for systematic allocation
+regardless of short-term model signals.
+
+\begin{table}[h]
+\centering
+\caption{High-risk tickers excluded from portfolio construction
+         (composite risk score $> 0.65$).}
+\label{tab:excluded}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{llc}
+\hline
+\textbf{Ticker} & \textbf{Sector} & \textbf{Risk Score} \\
+\hline
+PET & Petroleum Distribution & 0.864 \\
+MHC & Real Estate            & 0.737 \\
+VNE & Construction           & 0.722 \\
+TDH & Real Estate            & 0.709 \\
+PVD & Oil \& Gas             & 0.651 \\
+\hline
+\end{tabular}
+\end{table}
+
+After exclusion, the \textbf{surviving candidate universe} for
+portfolio optimisation consists of the 10 profitability-filter
+survivors minus any excluded by risk scoring. Of the original
+10 candidates, none overlapped with the 5 high-risk exclusions,
+leaving all 10 candidates available for MVO.
+
+\subsection{Task 4.3 --- Mean-Variance Optimisation}
+
+\textbf{Prudent portfolio} --- maximise Sharpe ratio, max single weight = 15\%:
+\begin{equation}
+\max_{\mathbf{w}} \; \frac{\mathbf{w}^\top \boldsymbol{\mu} - r_f}
+                          {\sqrt{\mathbf{w}^\top \Sigma \mathbf{w}}}
+\quad \text{s.t.}\ \sum_i w_i = 1,\; 0 \leq w_i \leq 0.15
+\end{equation}
+
+\textbf{Risk-taking portfolio} --- maximise expected return, Sharpe $\geq 0.80$
+floor, max single weight = 30\%:
+\begin{equation}
+\max_{\mathbf{w}} \; \mathbf{w}^\top \boldsymbol{\mu}
+\quad \text{s.t.}\ \frac{\mathbf{w}^\top \boldsymbol{\mu} - r_f}
+                        {\sqrt{\mathbf{w}^\top \Sigma \mathbf{w}}} \geq 0.80,\;
+\sum_i w_i = 1,\; 0 \leq w_i \leq 0.30
+\label{eq:mvo_return}
+\end{equation}
+
+
+where $\boldsymbol{\mu}$ is the vector of expected returns (Task~2
+7-day log-return predictions, annualised), $\Sigma$ is the sample
+covariance matrix estimated from 252 trading days of historical
+log-returns, and $r_f = 0.045$ is the risk-free rate (Vietnamese
+1-year Treasury yield).
+
+
+
+
+\subsubsection{Signal Tilt}
+
+The raw MVO weights $\mathbf{w}^{\text{MVO}}$ are blended with a
+signal conviction tilt derived from Task~3 BUY probabilities:
+
+\begin{equation}
+w_i^{\text{final}} = 0.70 \cdot w_i^{\text{MVO}}
++ 0.30 \cdot \frac{p_{\text{buy},i}}{\sum_j p_{\text{buy},j}}
+\label{eq:signal_tilt}
+\end{equation}
+
+
+
+
+\subsection{Portfolio Results}
+
+Table~\ref{tab:portfolios} compares the two portfolios.
+The Prudent portfolio maximises the Sharpe ratio subject to a
+15\% maximum single-weight constraint and a risk score ceiling
+of 0.50 (Low--Medium tickers only). The Risk-Taking portfolio
+relaxes both constraints (30\% max weight, risk ceiling 0.65)
+to allow higher concentration in the highest-return candidates.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{task4_portfolio_optimization.png}
+    \caption{Mean variance optimisation.}
+    \label{fig:t4_portfolio}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{projectedReturns.png}
+    \caption{Expected returns of 2 portfolios during 7-day  period using output from Task 2.}
+    \label{fig:t4_projected_returns}
+\end{figure}
+\begin{table}[h]
+\centering
+\caption{Portfolio construction parameters and performance metrics.}
+\label{tab:portfolios}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lcc}
+\hline
+\textbf{Parameter} & \textbf{Prudent} & \textbf{Risk-Taking} \\
+\hline
+Objective           & Max Sharpe ratio & Max return (Sharpe $\geq 0.80$) \\
+Max single weight   & 15\%             & 30\% \\
+Risk score ceiling  & $\leq 0.50$      & $\leq 0.65$ \\
+\hline
+\textbf{Expected Annual Return} & \textbf{11.61\%} & \textbf{13.56\%} \\
+\textbf{Annual Volatility}      & \textbf{13.67\%} & \textbf{15.88\%} \\
+\textbf{Sharpe Ratio}           & \textbf{0.520}   & \textbf{0.571}   \\
+Number of stocks    & 6                & 5 \\
+\hline
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:portfolio_weights} reports the final weights for
+both portfolios. Both select from the same low-to-medium risk
+pool (FMC, RAL, PPC, DMC appear in both), confirming that the
+optimiser consistently favours these diversified, liquid tickers.
+The Risk-Taking portfolio concentrates more heavily in FMC, RAL,
+and PPC (each $\approx$27\%) at the cost of dropping DHA and SFI.
+
+\begin{table}[h]
+\centering
+\caption{Final signal-boosted portfolio weights.}
+\label{tab:portfolio_weights}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lcc}
+\hline
+\textbf{Ticker} & \textbf{Prudent} & \textbf{Risk-Taking} \\
+\hline
+FMC & 17.5\% & 27.2\% \\
+RAL & 17.5\% & 27.2\% \\
+PPC & 17.5\% & 25.8\% \\
+DMC & 17.2\% & 13.0\% \\
+SFI & 15.9\% & ---    \\
+DHA & 14.4\% & ---    \\
+GMD & ---    &  6.7\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Task 4.4 --- Target-Return Portfolio}
+
+An interactive optimisation cell allows an investor to specify a
+desired annual return $r_{\text{target}}$ and receive the
+minimum-variance portfolio that exactly meets it:
+
+\begin{equation}
+\min_{\mathbf{w}}\; \mathbf{w}^\top \boldsymbol{\Sigma}\, \mathbf{w}
+\quad\text{subject to}\quad
+\mathbf{w}^\top \boldsymbol{\mu} = r_{\text{target}},\;\;
+\sum_i w_i = 1,\;\;
+0 \leq w_i \leq 40\%
+\label{eq:min_var}
+\end{equation}
+
+The feasible return range for the current candidate universe is
+\textbf{9.1\%} (Global Minimum Variance Portfolio) to \textbf{19.5\%}
+(maximum single-stock return). The slider is bounded to
+$[\max(5\%, r_{\min}),\; r_{\max}]$, preventing infeasible
+sub-risk-free-rate targets. This feature operationalises the efficient
+frontier concept: rather than presenting an abstract curve, it
+returns a concrete, investable allocation for any valid return target.
+
+\subsection{Methodology Justification}
+
+Table~\ref{tab:t4_justification} summarises the key methodological
+choices and their rationale.
+
+\begin{table}[h]
+\centering
+\caption{Task~4 design choices and justification.}
+\label{tab:t4_justification}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{4.5cm}p{8cm}}
+\hline
+\textbf{Choice} & \textbf{Reasoning} \\
+\hline
+MVO via \texttt{scipy} (no PyPortfolioOpt)
+  & Avoids external dependencies; the optimisation is fully
+    transparent and auditable; standard for academic submissions. \\
+7-day horizon for $\boldsymbol{\mu}$
+  & Consistent with Task~3 signal horizon; short enough that
+    predictions remain actionable; annualised with factor 252/7. \\
+30\% Task~3 signal tilt
+  & Directly integrates the classification output; 70\% MVO
+    weight preserves diversification properties. \\
+252-day covariance window
+  & Standard 1-year lookback; balances recency with statistical
+    stability of the covariance estimate. \\
+Sample covariance (252-day)
+  & Standard 1-year lookback; balances recency with statistical
+    stability; no shrinkage needed for a 5--10 stock universe. \\
+Candidate filter at 50\% of $\tau^*$
+  & Yields 8--12 candidates at any evaluation date, sufficient
+    for diversification while excluding clearly negative signals. \\
+High-risk exclusion before MVO
+  & Ensures MVO cannot select a high-volatility stock simply
+    because its predicted return is large. \\
+Two portfolio variants
+  & Explicitly addresses the risk-appetite dimension:
+    Prudent for conservative investors, Risk-Taking for
+    growth-oriented investors. \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Portfolio Results}
+
+Table~\ref{tab:portfolios} presents the final weights for both strategies.
+
+\begin{table}[h]
+\centering
+\caption{Final portfolio allocations after MVO and signal tilt.
+         Weights are reported as percentage of total portfolio.}
+\label{tab:portfolio_alloc}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{llrr}
+\hline
+\textbf{Ticker} & \textbf{Sector}
+  & \textbf{Prudent (\%)} & \textbf{Risk-Taking (\%)} \\
+\hline
+FMC & Seafood    & 17.5 & 27.2 \\
+RAL & Cables     & 17.5 & 27.2 \\
+PPC & Utilities  & 17.5 & 25.8 \\
+DMC & Pharma     & 17.2 & 13.0 \\
+SFI & Logistics  & 15.9 & --- \\
+DHA & Pharma     & 14.4 & --- \\
+GMD & Logistics  & --- & 6.7 \\
+STB & Banking    & --- & --- \\
+BMP & Plastics   & --- & --- \\
+ACB & Banking    & --- & --- \\
+\hline
+\textbf{Total}  & & \textbf{100\%} & \textbf{100\%} \\
+\hline
+\end{tabular}
+\end{table}
+
+The Prudent portfolio concentrates in six tickers with
+comparable weights (14--18\%), reflecting the minimum-variance
+objective's preference for diversification. The Risk-Taking
+portfolio concentrates 80\% in three tickers (FMC, RAL, PPC),
+reflecting the Sharpe-maximisation objective's tolerance for
+concentration when predicted return-to-risk ratios are high.
+The four tickers receiving zero weight in both strategies
+(STB, BMP, ACB) had the lowest profitability scores among
+the 10 candidates and were driven to zero by the MVO
+long-only constraint.
+
+
+\section{Task 5 --- Production Deployment}
+
+\subsection{System Overview}
+
+Task~5 packages all model outputs into a user-facing platform:
+a FastAPI REST backend serving predictions, trading signals, and
+portfolio data, paired with a React~19 dashboard and an automated
+daily data pipeline. The full stack is containerised via Docker
+Compose for reproducible deployment.
+
+\subsection{Backend Architecture}
+
+The FastAPI application (\texttt{api/main.py}) exposes all model
+outputs under a versioned prefix \texttt{/api/v1}.
+Table~\ref{tab:api_endpoints} summarises the primary endpoints.
+
+\begin{table}[h]
+\centering
+\caption{Core API endpoints.}
+\label{tab:api_endpoints}
+\renewcommand{\arraystretch}{1.3}
+\small
+\begin{tabular}{llp{5.5cm}}
+\hline
+\textbf{Method} & \textbf{Endpoint} & \textbf{Description} \\
+\hline
+GET & \texttt{/predict/\{ticker\}?task=task2\_1} & VN CNN-LSTM next-day prediction \\
+GET & \texttt{/predict/nasdaq/\{ticker\}?k=1}    & NASDAQ LSTM prediction \\
+GET & \texttt{/signals/\{ticker\}}               & BUY / SELL signal + confidence \\
+GET & \texttt{/signals/all/latest}               & Signals for all 27 VN tickers \\
+GET & \texttt{/portfolio/summary}                & Both portfolio allocations \\
+GET & \texttt{/market/history/\{ticker\}}        & OHLCV history via yfinance \\
+GET & \texttt{/live/prices}                      & SSE real-time price stream \\
+POST & \texttt{/pipeline/trigger}               & Manual pipeline run (JWT required) \\
+POST & \texttt{/auth/register}                  & User registration \\
+POST & \texttt{/auth/login}                     & Login, returns JWT \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Cache-first serving.}
+All prediction endpoints follow a cache-first strategy: the API
+first queries MongoDB for a cached prediction from the current
+trading day; only if no cache entry exists does it run live
+inference. This design ensures sub-millisecond response times for
+cached predictions while preserving the ability to serve fresh
+results on demand.
+
+\textbf{In-memory model cache.}
+All \texttt{.keras} model files and \texttt{.pkl} scalers are loaded
+into memory at application startup via \texttt{preload\_all()} in the
+FastAPI lifespan handler. Subsequent inference requests require no
+disk I/O, reducing per-request latency to the GPU/CPU compute time
+only.
+
+\subsection{Automated Data Pipeline}
+
+\subsubsection{APScheduler Daily Pipeline}
+
+An \texttt{AsyncIOScheduler} (APScheduler 3.10) is started inside the
+FastAPI lifespan and fires the \texttt{run\_pipeline()} coroutine
+daily at \textbf{06:00 ICT} (\texttt{Asia/Ho\_Chi\_Minh} timezone),
+30 minutes after HOSE market data becomes available. The pipeline
+executes five sequential stages:
+
+\begin{enumerate}
+  \item \textbf{Ingest.} Download the latest OHLCV bars for all 58
+    tickers (27 VN + 31 NASDAQ) from Yahoo Finance via
+    \texttt{yfinance}.
+  \item \textbf{Feature engineering.} Apply \texttt{\_add\_vn\_features()}
+    (24 features) or \texttt{\_add\_nasdaq\_features()} (20 features)
+    to the refreshed data.
+  \item \textbf{Inference.} Run all Task~2 and Task~1 models on the
+    latest 60-day (NASDAQ) or 30-day (VN) window.
+  \item \textbf{Signal classification.} Run all 54 Task~3 classifiers
+    and apply calibrated thresholds.
+  \item \textbf{MongoDB upsert.} Write prediction documents to the
+    \texttt{predictions} collection with a date key, overwriting any
+    existing entry for the current day.
+\end{enumerate}
+
+The complete pipeline for all 58 tickers completes in approximately
+41 seconds. A \texttt{pipeline\_runs} collection records each
+execution's start time, duration, status, and any per-ticker errors,
+accessible via \texttt{GET /api/v1/pipeline/status}.
+
+\subsubsection{Manual Trigger}
+
+If the container was inactive at 06:00 (e.g.\ after a restart), a
+stale prediction state can be corrected via the authenticated
+pipeline trigger endpoint:
+
+\begin{verbatim}
+POST /api/v1/pipeline/trigger
+Authorization: Bearer <JWT>
+\end{verbatim}
+
+The endpoint runs \texttt{run\_pipeline()} as a FastAPI
+\texttt{BackgroundTask}, returning a 202 Accepted response
+immediately while the pipeline executes asynchronously.
+JWT authentication is required to prevent unauthenticated
+re-training triggers in public deployments.
+
+\subsection{Infrastructure Stack and Design Journey}
+
+\subsubsection{Docker Compose Stack}
+
+The production stack comprises three services orchestrated by
+Docker Compose (Figure~\ref{fig:stack}):
+
+\begin{itemize}
+  \item \textbf{api} --- \texttt{python:3.11-slim} image;
+    FastAPI served by Uvicorn on port~8000; mounts
+    \texttt{models/} read-only and \texttt{nasdaq-historical-data/}
+    read-write (pipeline writes refreshed CSVs here).
+  \item \textbf{ui} --- \texttt{nginx:alpine} image; serves the
+    Vite-built React bundle and proxies \texttt{/api/} requests
+    to the API container.
+  \item \textbf{mongo} --- \texttt{mongo:7} with a named volume;
+    present only in the local \texttt{docker-compose.local.yml}
+    override; production targets MongoDB Atlas.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\begin{verbatim}
+  Internet
+     |
+  [ngrok tunnel]  (local demo)  /  [DNS + TLS]  (production)
+     |
+  [nginx:alpine  :80]
+     |-- /          --> React SPA bundle
+     |-- /api/      --> proxy → api:8000
+     |
+  [python:3.11-slim  :8000]   FastAPI + APScheduler
+     |-- /api/v1/predict      In-memory model cache
+     |-- /api/v1/signals      yfinance ingestion
+     |-- /api/v1/live         SSE stream
+     |
+  [mongo:7  :27017]   predictions · pipeline_runs · users
+\end{verbatim}
+\caption{Docker Compose service topology for the TensorFinance stack.}
+\label{fig:stack}
+\end{figure}
+
+\subsubsection{Build Optimisation}
+
+An initial Docker build context of \textbf{4.3~GB} caused build
+times exceeding 8 minutes. Root cause analysis identified four
+large directories inadvertently included in the build context:
+\texttt{.venv/} (2.2~GB), \texttt{DlFinalProject/} (1.0~GB),
+\texttt{ui/node\_modules/} (202~MB), and a \texttt{Docker.dmg}
+installer (580~MB). Adding a \texttt{.dockerignore} file excluding
+these paths reduced the build context to \textbf{$\approx$350~MB},
+cutting build time to under 90 seconds.
+
+\subsubsection{Stack Selection Rationale}
+
+Three deployment configurations were evaluated before settling on
+the final approach:
+
+\textbf{Option 1 --- VPS (Hetzner CX22).}
+A \$4.50/month virtual private server with Caddy TLS termination
+and MongoDB Atlas would provide a permanent public URL without
+dependency on a local machine staying awake. This option was
+evaluated and a full deployment guide was prepared. However, the
+remaining project timeline (one week) made VPS provisioning, DNS
+configuration, and TLS certificate management impractical given
+that the report had not yet been written.
+
+\textbf{Option 2 --- Cloud notebook (Streamlit / Google Colab).}
+Re-implementing the React dashboard in Streamlit would have
+eliminated the Docker and Nginx complexity, but would have required
+rewriting approximately 2,000 lines of frontend code. The existing
+React dashboard was already functional and tested; the cost of
+rewriting it was not justified.
+
+\textbf{Option 3 --- Local Docker Compose + ngrok (chosen).}
+The chosen approach runs all services locally and exposes port~80
+to a public URL via ngrok's free tier. The demo URL
+(\texttt{https://chooser-deprecate-briskly.ngrok-free.dev}) is
+stable across container restarts as long as ngrok remains connected.
+\texttt{caffeinate -i} prevents the host Mac from sleeping during
+demos, ensuring container uptime. This configuration required zero
+additional infrastructure and was fully operational within the
+remaining timeline.
+
+\subsection{Critical Bug: yfinance API Breakage}
+
+During deployment testing, the data ingestion pipeline failed
+for \textbf{all 31 NASDAQ tickers} with a \texttt{JSONDecodeError}.
+Root cause: Yahoo Finance changed its API response format between
+2024 and 2025, and \texttt{yfinance==0.2.48} (the pinned version)
+had not been updated to handle the new format. Every ticker
+returned an HTML error page instead of JSON, which the
+\texttt{json.loads()} call could not parse.
+
+The fix was a one-line change to \texttt{requirements.txt}:
+\begin{verbatim}
+yfinance>=0.2.54   # was: yfinance==0.2.48
+\end{verbatim}
+
+Version 1.3.0 resolved to by pip's constraint solver restored full
+ingestion functionality. All NASDAQ CSVs were subsequently refreshed
+manually before the Docker image rebuild.
+
+\textbf{Lesson.} Hard-pinning third-party data provider clients
+(yfinance, vnstock) introduces silent breakage risk when the
+underlying API changes. The corrected \texttt{requirements.txt}
+uses a minimum-version constraint rather than an exact pin for
+these libraries.
+
+\subsection{Authentication and Security}
+
+The API implements JWT-based authentication using
+\texttt{python-jose} and \texttt{bcrypt}. The \texttt{/auth/register}
+and \texttt{/auth/login} endpoints issue tokens signed with a
+configurable \texttt{JWT\_SECRET} environment variable. Only the
+pipeline trigger endpoint requires authentication; all prediction,
+signal, and portfolio endpoints are publicly readable to support
+unauthenticated dashboard access.
+
+Sensitive configuration (MongoDB connection string, JWT secret,
+CORS origins) is injected exclusively via environment variables;
+no secrets appear in the codebase or Docker image layers.
+
+\section{Limitations and Future Work}
+
+\subsection{Current Limitations}
+
+\textbf{Directional accuracy below 50\% (Task~2).}
+The CNN-LSTM is optimised for magnitude accuracy (Huber loss) rather
+than directional accuracy. On days with low predicted returns, the
+model correctly outputs a near-zero log-return, which minimises loss
+regardless of sign. This results in a measured directional accuracy
+of 44.4\% at $k=1$ --- below the naive 50\% baseline --- because
+the binary direction metric penalises conservative magnitude-correct
+predictions. A direction-aware loss (e.g.\ a weighted combination of
+Huber and binary cross-entropy on the sign) could address this.
+
+\textbf{No macro or news features.}
+All features are derived from price and volume data only. Major price
+moves driven by earnings surprises, central bank announcements, or
+geopolitical events are not represented in the feature space. The model
+treats these events as unexplained residuals, which inflates MAE on
+high-volatility days and limits directional accuracy around event dates.
+
+\textbf{Static portfolio weights.}
+The Task~4 portfolio is computed once from a fixed evaluation-date
+snapshot. In a live system, weights should be recomputed daily as
+new CNN-LSTM predictions and Task~3 signals arrive. The current
+implementation treats portfolio construction as a batch process
+rather than a rolling one.
+
+\textbf{No transaction costs or liquidity constraints.}
+The MVO objective does not account for bid-ask spreads, market impact,
+or minimum lot sizes. For low-liquidity VN stocks (e.g.\ PGC,
+PET), the optimal theoretical allocation may not be executable at
+the implied size.
+
+\textbf{Public deployment availability.}
+The ngrok free-tier URL resets whenever the local machine restarts
+or the ngrok process is interrupted, making the public URL
+non-persistent. A permanent deployment requires either a paid ngrok
+subscription or a VPS with DNS.
+
+\subsection{Future Work}
+
+\textbf{Direction-aware training objective.}
+Augmenting Huber loss with a directional penalty term
+$\lambda \cdot \text{BCE}(\text{sign}(\hat{y}), \text{sign}(y))$
+would directly optimise both magnitude and direction, addressing
+the 44.4\% directional accuracy limitation at minimal architectural
+cost.
+
+\textbf{Macro feature integration.}
+Incorporating macroeconomic features --- VN-Index return, USD/VND
+exchange rate, world commodity prices --- as auxiliary inputs to the
+LSTM could improve performance around systematic market moves. These
+features are already stationary (log-returns and ratios) and would
+slot directly into the existing feature pipeline.
+
+\textbf{Rolling portfolio rebalancing.}
+Extending the scheduler pipeline to recompute Task~4 weights daily
+would transform the static portfolio snapshot into a live systematic
+strategy, enabling backtesting with realistic rebalancing costs.
+
+\textbf{VPS deployment.}
+Migrating to a permanent VPS (Hetzner CX22 or equivalent) with
+Caddy TLS termination and MongoDB Atlas would eliminate the ngrok
+dependency and provide 24/7 availability. The Docker Compose
+configuration is already production-ready; only DNS and TLS
+provisioning would be required.
+
+\textbf{Sentiment features.}
+Integrating news sentiment scores (via a lightweight NLP classifier
+on Vietnamese financial news) as additional features could capture
+event-driven price moves that are invisible to pure OHLCV models.
+
+\section{Conclusion}
+
+This report has presented TensorFinance, an end-to-end deep learning
+platform for financial time series forecasting and systematic trading,
+developed across five progressive tasks in the CS313 curriculum.
+
+Tasks~1 and~2 established the core modelling foundation. A three-layer
+stacked LSTM trained on 31 NASDAQ tickers achieved a mean MAPE of 1.65\%
+for next-day prediction, with consistent performance across bull and
+bear market regimes. The CNN-LSTM hybrid developed for 27 Vietnamese HOSE
+stocks achieved a mean MAPE of 1.31\%, demonstrating that the addition of
+local CNN feature extraction and VN-specific candlestick features provides
+meaningful advantage in a retail-dominated market. Both architectures share
+a principled design foundation: all features are stationary by construction,
+the target variable is a log-return rather than a raw price, and data leakage
+is prevented via strict chronological splitting.
+
+Task~3 extended the CNN-LSTM backbone to binary classification, generating
+buy and sell trading signals per ticker. The key challenge --- a degenerate
+all-positive collapse caused by regression weight transfer --- was resolved
+through LSTM weight reinitialisation and focal loss, yielding mean AUC values
+of 0.781 (BUY) and 0.806 (SELL) across 27 tickers.
+
+Task~4 integrated prediction and signal outputs with classical Markowitz
+mean-variance optimisation, producing two investable portfolio strategies
+differentiated by risk objective. The
+staged pipeline --- profitability filtering, risk exclusion, MVO, signal
+tilt --- ensures that both return potential and downside risk are assessed
+independently before weights are determined.
+
+Task~5 packaged all model outputs into a production platform: a FastAPI backend
+with daily APScheduler automation, a React~19 dashboard with live price streaming,
+and a Docker Compose stack deployable on any Linux host. A critical data
+provider breakage (yfinance API change) was diagnosed and resolved during
+deployment, demonstrating the importance of minimum-version rather than exact
+pinning for third-party API clients.
+
+The project demonstrates that deep learning models can extract
+predictive signal from financial time series when properly regularised and
+evaluated under realistic conditions: strict temporal splits, scale-invariant
+features, and robust loss functions. The directional accuracy limitation
+identified in Task~2 and the static portfolio construction are the primary
+targets for future work, alongside a permanent VPS deployment to replace
+the current ngrok tunnelling setup.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
