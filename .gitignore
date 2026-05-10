@@ -1,3 +1,6 @@
+.env
+.env.production
+
 # Python
 .venv/
 __pycache__/
@@ -11,8 +14,4 @@ __pycache__/
 # macOS
 .DS_Store
 
-# Large model files — track metadata/predictions but not weights
-models/**/*.keras
-models/**/*.joblib
-models/**/*.pkl
-models/**/*.h5
+# model weights were unblocked for Railway deployment

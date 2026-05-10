@@ -17,4 +17,8 @@ fastapi==0.115.0
 uvicorn[standard]==0.32.0
 motor==3.6.0
 apscheduler==3.10.4
-yfinance==0.2.48
+yfinance>=0.2.54
+python-jose[cryptography]==3.3.0
+bcrypt==4.2.1
+email-validator==2.2.0
+python-multipart==0.0.20

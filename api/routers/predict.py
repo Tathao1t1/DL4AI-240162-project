@@ -15,7 +15,7 @@ from api.database import predictions_col
 
 router = APIRouter(prefix="/predict", tags=["predict"])
 
-VALID_TASKS = ["task2_1", "task2_2_k3", "task2_2_k7"]
+VALID_TASKS = ["task2_1", "task2_2_k3", "task2_2_k7", "task2_3_k3", "task2_3_k7"]
 
 
 @router.get("/tickers")
@@ -27,7 +27,7 @@ async def list_tickers():
 @router.get("/{ticker}")
 async def predict_ticker(
     ticker: str,
-    task: str = Query("task2_2_k7", description="task2_1 | task2_2_k3 | task2_2_k7"),
+    task: str = Query("task2_2_k7", description="task2_1 | task2_2_k3 | task2_2_k7 | task2_3_k3 | task2_3_k7"),
     use_cache: bool = Query(True, description="Return latest stored result if available"),
 ):
     """

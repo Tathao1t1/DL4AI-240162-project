@@ -54,7 +54,7 @@ export const AuthModal: React.FC = () => {
             <TrendingUp size={22} className="text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tighter">QuantPulse AI</h1>
+            <h1 className="text-lg font-bold tracking-tighter">TensorFinance</h1>
             <p className="text-[9px] uppercase tracking-[0.2em] text-text-muted font-bold">Financial Intelligence</p>
           </div>
         </div>

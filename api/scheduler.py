@@ -175,7 +175,7 @@ async def run_pipeline():
         await _ingest_nasdaq_ticker(ticker)   # failures logged but don't count as pipeline failure
 
     # 2 + 3. PREDICT (transform happens inside inference.py)
-    tasks = ["task2_1", "task2_2_k3", "task2_2_k7"]
+    tasks = ["task2_1", "task2_2_k3", "task2_2_k7", "task2_3_k3", "task2_3_k7"]
     col = predictions_col()
 
     for task in tasks:
@@ -202,8 +202,12 @@ async def run_pipeline():
             docs.append(doc)
             ok.append(r["ticker"])
 
-        if docs:
-            await col.insert_many(docs)
+        for doc in docs:
+            await col.replace_one(
+                {"ticker": doc["ticker"], "task": doc["task"]},
+                doc,
+                upsert=True,
+            )
 
     completed = datetime.now(timezone.utc)
     duration  = (completed - started).total_seconds()

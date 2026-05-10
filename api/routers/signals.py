@@ -18,6 +18,7 @@ _BUY_METRICS_PATH  = ROOT / "models" / "task3" / "task3_buy_metrics.csv"
 _SELL_METRICS_PATH = ROOT / "models" / "task3" / "task3_sell_metrics.csv"
 
 _manifest: dict | None = None
+_model_cache: dict = {}   # key: file path string → loaded keras model
 
 # ── Load model-performance metrics once at import time ────────────────────────
 def _load_metrics() -> tuple[dict, dict]:
@@ -57,10 +58,17 @@ def _get_task3_signal(ticker: str) -> dict:
     buy_cfg  = entry["task3_buy"]
     sell_cfg = entry["task3_sell"]
 
-    # Load models (relative to ROOT)
+    # Load models (relative to ROOT) — cached in-memory after first load
     models_dir = ROOT / "models" / "task3"
-    buy_model  = tf.keras.models.load_model(models_dir / buy_cfg["model"],  compile=False)
-    sell_model = tf.keras.models.load_model(models_dir / sell_cfg["model"], compile=False)
+
+    def _get_model(path):
+        key = str(path)
+        if key not in _model_cache:
+            _model_cache[key] = tf.keras.models.load_model(path, compile=False)
+        return _model_cache[key]
+
+    buy_model  = _get_model(models_dir / buy_cfg["model"])
+    sell_model = _get_model(models_dir / sell_cfg["model"])
 
     # Load scaler (shared with Task 2)
     scaler_path = ROOT / "models" / "task2" / f"scaler_X_{ticker}.pkl"

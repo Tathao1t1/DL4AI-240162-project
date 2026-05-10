@@ -3,12 +3,10 @@ import { Sidebar } from './components/Sidebar';
 import { PricePredictions } from './components/PricePredictions';
 import { TradingSignals } from './components/TradingSignals';
 import { Portfolio } from './components/Portfolio';
-import { AuthModal } from './components/AuthModal';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { fetchQuote, QuoteData } from './services/marketService';
 import { useLivePrices } from './hooks/useLivePrices';
 import { motion, AnimatePresence } from 'motion/react';
-import { AlertCircle, Loader2, LogOut } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from './lib/utils';
 
 const VN_SECTOR_MAP: Record<string, string> = {
@@ -39,7 +37,6 @@ const NASDAQ_SECTOR_MAP: Record<string, string> = {
 };
 
 function AppShell() {
-  const { user, logout } = useAuth();
 
   // `market` / `ticker` = what's selected in the sidebar (may not be searched yet)
   // `currentMarket` / `currentTicker` = what was last successfully searched
@@ -75,8 +72,12 @@ function AppShell() {
       setCurrentTicker(sym);
       setCurrentMarket(mkt);
     } catch {
-      setError(`Could not find "${sym}" in ${mkt} market.`);
+      // Quote failed (e.g. yfinance unavailable) but predictions may still work.
+      // Update current ticker so prediction components load anyway.
       setQuote(null);
+      setCurrentTicker(sym);
+      setCurrentMarket(mkt);
+      setError(`Live quote unavailable for "${sym}" — showing model predictions only.`);
     } finally {
       setLoading(false);
     }
@@ -104,9 +105,6 @@ function AppShell() {
 
   return (
     <div className="flex h-screen bg-bg-deep text-text-primary overflow-hidden font-sans">
-      {/* Auth gate — show modal when logged out */}
-      {!user && <AuthModal />}
-
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -146,24 +144,6 @@ function AppShell() {
 
             <div className="flex items-center gap-4">
               {loading && <Loader2 className="animate-spin text-accent-theme" size={22} />}
-
-              {/* User avatar + logout */}
-              {user && (
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-accent-theme/15 border border-accent-theme/30 flex items-center justify-center">
-                    <span className="text-[11px] font-black text-accent-theme uppercase">
-                      {user.email[0]}
-                    </span>
-                  </div>
-                  <button
-                    onClick={logout}
-                    title="Sign out"
-                    className="p-1.5 rounded-lg text-text-muted hover:text-neg hover:bg-neg/10 transition-colors"
-                  >
-                    <LogOut size={14} />
-                  </button>
-                </div>
-              )}
 
               {quote && !loading && (
                 <div className="flex items-baseline gap-4">
@@ -225,9 +205,5 @@ function AppShell() {
 }
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <AppShell />
-    </AuthProvider>
-  );
+  return <AppShell />;
 }

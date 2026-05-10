@@ -1,16 +1,17 @@
 """
-QuantPulse AI — FastAPI backend
+TensorFinance — FastAPI backend
 Serves Task 2 predictions, Task 3 signals, Task 4 portfolio data,
 OHLCV market data, and an automated daily pipeline.
 """
+import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import predict, signals, portfolio, market, pipeline, predict_nasdaq, search, live
-from api.auth.router import router as auth_router
 from api.scheduler import start_scheduler
 from api import database
 
@@ -21,27 +22,41 @@ logging.basicConfig(
 logger = logging.getLogger("main")
 
 
+async def _preload_models():
+    from api.routers.predict_nasdaq import preload_all as preload_nasdaq
+    from inference import preload_all as preload_vn
+    await asyncio.gather(preload_nasdaq(), preload_vn(), return_exceptions=True)
+    logger.info("Model preload complete")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    logger.info("Starting QuantPulse API")
+    logger.info("Starting TensorFinance API")
+    await database.ensure_indexes()
     start_scheduler()
+    asyncio.create_task(_preload_models())
     yield
     # Shutdown
     await database.close()
-    logger.info("QuantPulse API shut down")
+    logger.info("TensorFinance API shut down")
 
 
 app = FastAPI(
-    title="QuantPulse AI",
+    title="TensorFinance",
     description="Vietnam stock market prediction API — Tasks 2, 3, 4",
     version="1.0.0",
     lifespan=lifespan,
 )
 
+_CORS_ORIGINS = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://localhost:3000",
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,13 +73,12 @@ app.include_router(market.router,          prefix=PREFIX)
 app.include_router(pipeline.router,        prefix=PREFIX)
 app.include_router(search.router,          prefix=PREFIX)
 app.include_router(live.router,            prefix=PREFIX)
-app.include_router(auth_router,            prefix=PREFIX)
 
 
 @app.get("/")
 async def root():
     return {
-        "service": "QuantPulse AI",
+        "service": "TensorFinance",
         "version": "1.0.0",
         "docs":    "/docs",
         "status":  "running",

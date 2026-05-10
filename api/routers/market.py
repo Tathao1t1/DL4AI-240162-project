@@ -2,7 +2,7 @@
 /api/v1/market endpoints — OHLCV history, quotes, and news.
 
 VN tickers: reads from clean-historical-data-2026/ CSVs.
-NASDAQ tickers: proxies through yfinance.
+NASDAQ tickers: reads from nasdaq-historical-data/ CSVs (kept fresh by scheduler).
 """
 import sys
 from pathlib import Path
@@ -39,23 +39,21 @@ def _load_vn_history(ticker: str, days: int) -> pd.DataFrame:
     return df
 
 
-# ── NASDAQ History (via yfinance) ──────────────────────────────────────────────
+# ── NASDAQ History (from local CSV) ───────────────────────────────────────────
+
+NASDAQ_CSV_DIR = ROOT / "nasdaq-historical-data"
 
 def _load_nasdaq_history(ticker: str, period: str) -> pd.DataFrame:
-    import yfinance as yf
-    # Use Ticker.history() — more reliable than yf.download() for single tickers
-    df = yf.Ticker(ticker).history(period=period, interval="1d")
-    if df.empty:
-        raise FileNotFoundError(f"No yfinance data for {ticker}")
-    df = df.reset_index()
-    # Flatten any MultiIndex columns and lowercase
-    df.columns = [
-        (c[0].lower() if isinstance(c, tuple) else c.lower()).replace(" ", "_")
-        for c in df.columns
-    ]
-    # Ensure 'date' column exists (yfinance uses 'Date' or 'Datetime')
-    if "datetime" in df.columns:
-        df = df.rename(columns={"datetime": "date"})
+    """Read NASDAQ OHLCV from local CSV — kept fresh by the daily scheduler."""
+    csv_path = NASDAQ_CSV_DIR / f"{ticker}_Historical.csv"
+    if not csv_path.exists():
+        raise FileNotFoundError(f"No local data for {ticker}")
+    period_days = {"1mo": 22, "3mo": 66, "6mo": 132, "1y": 252}
+    days = period_days.get(period, 22)
+    df = pd.read_csv(csv_path)
+    df.columns = [c.lower() for c in df.columns]
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date").tail(days).reset_index(drop=True)
     return df
 
 
@@ -147,23 +145,22 @@ async def get_quote(
                 "currency":                  "VND",
             }
         else:
-            import yfinance as yf
-            hist = yf.Ticker(ticker).history(period="5d", interval="1d")
-            if hist.empty or len(hist) < 2:
-                raise HTTPException(404, f"No data returned for {ticker}")
-            close      = float(hist["Close"].iloc[-1])
-            prev_close = float(hist["Close"].iloc[-2])
+            csv_path = NASDAQ_CSV_DIR / f"{ticker}_Historical.csv"
+            if not csv_path.exists():
+                raise HTTPException(404, f"No local data for {ticker}")
+            df_local = pd.read_csv(csv_path)
+            df_local["Date"] = pd.to_datetime(df_local["Date"])
+            df_local = df_local.sort_values("Date").tail(2)
+            if len(df_local) < 2:
+                raise HTTPException(404, f"Insufficient data for {ticker}")
+            close      = float(df_local["Close"].iloc[-1])
+            prev_close = float(df_local["Close"].iloc[-2])
             change     = close - prev_close
             change_pct = (change / prev_close) * 100
-            # Try to get company name cheaply via fast_info, fall back to ticker symbol
-            try:
-                short_name = yf.Ticker(ticker).fast_info.get("shortName", ticker)
-            except Exception:
-                short_name = ticker
             return {
                 "ticker":                     ticker,
                 "market":                     market,
-                "shortName":                  short_name if short_name else ticker,
+                "shortName":                  ticker,
                 "regularMarketPrice":         round(close, 2),
                 "regularMarketChange":        round(change, 2),
                 "regularMarketChangePercent": round(change_pct, 2),

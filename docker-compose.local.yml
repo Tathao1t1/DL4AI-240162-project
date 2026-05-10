@@ -1,0 +1,23 @@
+# Local development override — adds a local MongoDB container.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.local.yml up
+services:
+
+  mongo:
+    image: mongo:7
+    container_name: tensorfinance_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: tensorfinance
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-localpass}
+
+  api:
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:

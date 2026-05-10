@@ -28,7 +28,9 @@ async def pipeline_history(limit: int = 10):
 
 
 @router.post("/trigger")
-async def trigger_pipeline(background_tasks: BackgroundTasks):
+async def trigger_pipeline(
+    background_tasks: BackgroundTasks,
+):
     """Manually trigger the pipeline (runs in background)."""
     from api.scheduler import run_pipeline
     background_tasks.add_task(run_pipeline)

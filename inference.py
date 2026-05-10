@@ -126,7 +126,9 @@ def _load_raw(ticker: str) -> pd.DataFrame:
         df[col] = pd.to_numeric(df[col], errors='coerce').clip(lower=1)
     df['Volume'] = pd.to_numeric(df['Volume'], errors='coerce').fillna(0)
     df[['Open','High','Low','Close']] = df[['Open','High','Low','Close']].ffill(limit=3)
-    return df.dropna(subset=['Open','High','Low','Close']).reset_index(drop=True)
+    df = df.dropna(subset=['Open','High','Low','Close']).reset_index(drop=True)
+    from api.utils.validation import validate_ohlcv
+    return validate_ohlcv(df, ticker)
 
 
 # ── Public API ─────────────────────────────────────────────────────────────────
@@ -184,6 +186,22 @@ def predict_price(ticker: str, task: str = 'task2_1') -> dict:
         'predictions': predictions,
         'unit'       : 'VND',
     }
+
+
+async def preload_all():
+    """Warm model + scaler caches for all VN tickers and tasks at startup."""
+    import asyncio, logging
+    loop = asyncio.get_event_loop()
+    log  = logging.getLogger("inference.preload")
+    for ticker in TICKERS:
+        for task in ("task2_1", "task2_2_k3", "task2_2_k7"):
+            try:
+                entry = _MANIFEST['models'][ticker][task]
+                await loop.run_in_executor(None, _get_model,  str(_ART_DIR / entry['model']))
+                await loop.run_in_executor(None, _get_scaler, str(_ART_DIR / entry['scaler_X']))
+                await loop.run_in_executor(None, _get_scaler, str(_ART_DIR / entry['scaler_y']))
+            except Exception as e:
+                log.warning("preload failed %s %s: %s", ticker, task, e)
 
 
 def predict_all_tickers(task: str = 'task2_1') -> list[dict]:

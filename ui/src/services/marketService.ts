@@ -112,9 +112,14 @@ export async function fetchPrediction(ticker: string, task: string): Promise<Pre
   return get<PredictionData>(`/predict/${ticker}?task=${task}`);
 }
 
-/** Task 1 price prediction (NASDAQ tickers). k=1 next-day, k=3 3rd-day, k=7 7th-day */
+/** Task 1.2 price prediction (NASDAQ tickers). k=1 next-day, k=3 3rd-day, k=7 7th-day */
 export async function fetchNasdaqPrediction(ticker: string, k: 1 | 3 | 7 = 1): Promise<PredictionData> {
   return get<PredictionData>(`/predict/nasdaq/${ticker}?k=${k}`);
+}
+
+/** Task 1.3 consecutive price predictions (NASDAQ tickers). k=3 → day_1..3, k=7 → day_1..7 */
+export async function fetchNasdaqConsecutivePrediction(ticker: string, k: 3 | 7): Promise<PredictionData> {
+  return get<PredictionData>(`/predict/nasdaq/consecutive/${ticker}?k=${k}`);
 }
 
 /** Task 4 portfolio summary (both prudent + risk-taking) */

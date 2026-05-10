@@ -179,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="w-9 h-9 bg-accent-theme rounded-xl flex items-center justify-center shadow-lg shadow-accent-theme/20">
             <TrendingUp size={20} className="text-white" />
           </div>
-          QuantPulse AI
+          TensorFinance
         </h1>
         <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted mt-3 font-bold">
           Financial Intelligence

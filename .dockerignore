@@ -1,0 +1,28 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Jupyter
+*.ipynb
+.ipynb_checkpoints/
+
+# Node
+ui/node_modules/
+ui/dist/
+
+# Large files that don't belong in containers
+Docker.dmg
+DlFinalProject/
+
+# Dev artifacts
+baseline_comparison*.png
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Local env (secrets — never in image)
+.env
