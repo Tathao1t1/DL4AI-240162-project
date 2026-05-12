@@ -17,6 +17,8 @@ An end-to-end platform for deep learning–based stock price forecasting and sys
 
 **[📺 Product Demo (Google Drive)](https://drive.google.com/drive/folders/1uLG1LHZHMZ8kd9zdVAq6DgSJLaYHC6DB)**
 **[📺 Product Link(ngrok)](https://chooser-deprecate-briskly.ngrok-free.dev/)**
+**[📺 Report for more details (Google Drive)](https://drive.google.com/drive/folders/1uLG1LHZHMZ8kd9zdVAq6DgSJLaYHC6DB)**
+
 
 
 </div>
